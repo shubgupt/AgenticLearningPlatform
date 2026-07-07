@@ -1,0 +1,47 @@
+[
+  {
+    "conceptId": "law_1_inertia",
+    "subject": "physics",
+    "formal_statement": "An object remains at rest or in uniform motion in a straight line unless acted upon by a net external force.",
+    "common_misconceptions": [
+      {
+        "id": "spontaneous_motion",
+        "description": "believes objects can start moving with no force applied"
+      },
+      {
+        "id": "force_scales_with_speed",
+        "description": "believes constant motion still requires an ongoing force / net force"
+      }
+    ]
+  },
+  {
+    "conceptId": "law_2_f_equals_ma",
+    "subject": "physics",
+    "formal_statement": "F_net = m\u00b7a \u2014 acceleration is directly proportional to net force and inversely proportional to mass.",
+    "common_misconceptions": [
+      {
+        "id": "push_size_confusion",
+        "description": "does not connect push magnitude to acceleration magnitude"
+      },
+      {
+        "id": "f_ma_inversion_error",
+        "description": "inverts the F=ma relationship (multiplies when should divide or vice versa)"
+      }
+    ]
+  },
+  {
+    "conceptId": "law_3_action_reaction",
+    "subject": "physics",
+    "formal_statement": "For every action there is an equal and opposite reaction: F(A\u2192B) = \u2212F(B\u2192A), acting on two different objects.",
+    "common_misconceptions": [
+      {
+        "id": "unequal_force_pair",
+        "description": "believes the lighter/faster-moving object receives a smaller force"
+      },
+      {
+        "id": "one_way_force_only",
+        "description": "believes only the acting object exerts force, not the receiving object"
+      }
+    ]
+  }
+]

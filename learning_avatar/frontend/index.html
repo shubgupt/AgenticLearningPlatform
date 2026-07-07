@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newton's Odyssey</title>
+    <style>
+        body { margin:0; background:linear-gradient(#0a0a2e,#1a2a4a); color:#fff; font-family:Arial,sans-serif; overflow:hidden; }
+        #screen { position:relative; width:100vw; height:100vh; }
+        canvas { display:block; background:#112233; }
+        .overlay { position:absolute; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:10; }
+        header { background:rgba(0,0,0,0.8); padding:15px 20px; display:flex; justify-content:space-between; align-items:center; pointer-events:auto; }
+        button { background:#ffcc00; color:#111; border:none; padding:12px 24px; font-weight:bold; border-radius:8px; cursor:pointer; font-size:16px; }
+        .map-container {
+            position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+            border:6px solid #ffcc00; border-radius:25px; width:740px; height:540px;
+            background:linear-gradient(#223344,#445566); overflow:hidden; pointer-events:auto;
+        }
+        .location {
+            position:absolute; width:90px; height:90px; font-size:52px;
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+            transition:transform 0.3s; text-shadow:0 0 15px #ff0;
+        }
+        .location:hover { transform:scale(1.3); }
+        #instructions {
+            position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
+            background:rgba(0,0,0,0.85); padding:12px 25px; border-radius:12px;
+            font-size:15px; pointer-events:auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="screen">
+        <header>
+            <div><strong>Newton's Odyssey</strong></div>
+            <div>Progress: <span id="progress">0</span>%</div>
+        </header>
+
+        <!-- Map -->
+        <div id="map-screen" class="overlay" style="display:flex;align-items:center;justify-content:center;">
+            <div class="map-container">
+                <div class="location" onclick="goToChallenge(0)" style="top:120px;left:120px;">🏞️</div>
+                <div class="location" onclick="goToChallenge(1)" style="top:220px;left:340px;">🏔️</div>
+                <div class="location" onclick="goToChallenge(2)" style="top:360px;left:540px;">🏠</div>
+                <div id="avatar" style="position:absolute;top:90px;left:90px;font-size:58px;transition:all 1.2s ease-in-out;">🧑‍🔬</div>
+            </div>
+        </div>
+
+        <!-- Challenge -->
+        <div id="challenge-screen" class="overlay" style="display:none;flex-direction:column;">
+            <header>
+                <button onclick="backToMap()">← Map</button>
+                <div id="challenge-title">Lake Challenge</div>
+            </header>
+            <canvas id="game-canvas" width="820" height="420"></canvas>
+            <div id="instructions">
+                Press <strong>SPACE</strong> or click the canvas to apply force!<br>
+                Goal: Reach the right side →
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        let pos = 100;
+        let velocity = 0;
+        let isChallengeActive = false;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Water / ground
+            ctx.fillStyle = '#1e3a5f';
+            ctx.fillRect(0, 280, canvas.width, 140);
+
+            // Moving object
+            velocity *= 0.985; // friction
+            pos += velocity;
+
+            ctx.save();
+            ctx.translate(pos, 240);
+            ctx.fillStyle = '#ff8800';
+            ctx.fillRect(-40, -20, 80, 40); // boat
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-25, -35, 30, 20); // sail
+            ctx.restore();
+
+            // Goal line
+            ctx.fillStyle = '#44ff88';
+            ctx.fillRect(canvas.width - 30, 200, 20, 150);
+
+            if (pos > canvas.width - 80 && isChallengeActive) {
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 36px Arial';
+                ctx.fillText('🎉 Success! Newton\'s 2nd Law', 200, 150);
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        function applyForce() {
+            velocity += 4.5; // big push
+        }
+
+        function goToChallenge(n) {
+            document.getElementById('map-screen').style.display = 'none';
+            const cs = document.getElementById('challenge-screen');
+            cs.style.display = 'flex';
+            document.getElementById('challenge-title').textContent = ['Lake','Mountain','House'][n] + ' Challenge';
+            
+            isChallengeActive = true;
+            pos = 100;
+            velocity = 0;
+        }
+
+        function backToMap() {
+            document.getElementById('challenge-screen').style.display = 'none';
+            document.getElementById('map-screen').style.display = 'flex';
+            isChallengeActive = false;
+        }
+
+        // Controls
+        canvas.addEventListener('click', applyForce);
+        document.addEventListener('keydown', e => {
+            if (e.key === ' ' && document.getElementById('challenge-screen').style.display !== 'none') {
+                e.preventDefault();
+                applyForce();
+            }
+            if (e.key === 'Escape') backToMap();
+        });
+
+        // Start
+        draw();
+        console.log("%cGame ready! Click locations → Use SPACE or click to push.", "color:#ffcc00;font-size:15px");
+    </script>
+</body>
+</html>

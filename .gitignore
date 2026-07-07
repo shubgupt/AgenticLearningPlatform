@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual envs / lockfile artifacts that shouldn't be committed
+learning_avatar/.venv/
+.venv/
+
+# Secrets -- never commit real API keys, only .env.example
+.env
+learning_avatar/.env
+
+# Local runtime state
+sessions.db
+learning_avatar/sessions.db
+
+# Editor backups
+*.bak
+
+# Large local-only archive -- a backup zip of learning_avatar/, redundant
+# with the tracked source and too big to belong in git history
+learning_avatar.zip
+
+# Empty scratch folder, nothing to track
+untitled folder/

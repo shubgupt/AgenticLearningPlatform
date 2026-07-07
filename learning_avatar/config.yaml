@@ -1,0 +1,20 @@
+# Non-secret settings. Safe to commit. Secrets (the API key) go in .env only.
+
+llm:
+  mode: mock  # mock | live -- see src/learning_avatar/llm_client.py
+  teaching_agent_model: gpt-4o-mini
+  assessment_agent_model: gpt-4o-mini
+
+server:
+  host: 127.0.0.1
+  port: 8100
+
+# The content-retrieval MCP server (src/learning_avatar/mcp/server.py) now
+# runs as its own long-lived process, started by hand, separately from the
+# web app -- see README "Running it". This is where it listens.
+mcp:
+  host: 127.0.0.1
+  port: 9000
+
+storage:
+  db_path: sessions.db

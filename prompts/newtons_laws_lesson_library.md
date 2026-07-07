@@ -1,0 +1,149 @@
+# Default Content Library — Newton's Three Laws of Motion (Demo Scope)
+
+Ships with the demo build as the Teaching Agent's default library (`teaching_agent_prompt.md` §6). Conforms to the `LessonScreen` schema in `ui_prompt.md` §4.1. Prose-only source version (easier to read, same content): `newtons_laws_demo_screens.md`. This file is the schema-conformant, agent-consumable version.
+
+**Demo scope note:** cut down from the full 18-combination set to **12 records** for this demo — grade bands limited to `grade5` and `high`, themes limited to `soccer` and `creative_play` (Barbie). `anime_stories` and the `elementary` (3rd-grade) register are dropped from this build; the schema and generation algorithm in `teaching_agent_prompt.md` still support them, so they can be re-added later without any structural change — only new records need to be appended to the array below.
+
+`gradeBand` values in this file (`grade5`, `high`) are the **content-library register keys**, distinct from the Root Agent's broader onboarding `ageBand` categories (`elementary | middle | high`). See `technical_specification_v2.md` §6 for the mapping between the two.
+
+`ConceptDefinition`s these lessons are generated against (unchanged from the full set):
+
+```json
+[
+  { "conceptId": "law_1_inertia", "subject": "physics", "formal_statement": "An object remains at rest or in uniform motion in a straight line unless acted upon by a net external force.", "common_misconceptions": [
+    { "id": "spontaneous_motion", "description": "believes objects can start moving with no force applied" },
+    { "id": "force_scales_with_speed", "description": "believes constant motion still requires an ongoing force / net force" } ] },
+  { "conceptId": "law_2_f_equals_ma", "subject": "physics", "formal_statement": "F_net = m·a — acceleration is directly proportional to net force and inversely proportional to mass.", "common_misconceptions": [
+    { "id": "push_size_confusion", "description": "does not connect push magnitude to acceleration magnitude" },
+    { "id": "f_ma_inversion_error", "description": "inverts the F=ma relationship (multiplies when should divide or vice versa)" } ] },
+  { "conceptId": "law_3_action_reaction", "subject": "physics", "formal_statement": "For every action there is an equal and opposite reaction: F(A→B) = −F(B→A), acting on two different objects.", "common_misconceptions": [
+    { "id": "unequal_force_pair", "description": "believes the lighter/faster-moving object receives a smaller force" },
+    { "id": "one_way_force_only", "description": "believes only the acting object exerts force, not the receiving object" } ] }
+]
+```
+
+## Combination Matrix (12 rows)
+
+| id | Grade | Theme | Concept |
+|---|---|---|---|
+| law1_grade5_soccer | grade5 | soccer | law_1_inertia |
+| law2_grade5_soccer | grade5 | soccer | law_2_f_equals_ma |
+| law3_grade5_soccer | grade5 | soccer | law_3_action_reaction |
+| law1_grade5_creative_play | grade5 | creative_play | law_1_inertia |
+| law2_grade5_creative_play | grade5 | creative_play | law_2_f_equals_ma |
+| law3_grade5_creative_play | grade5 | creative_play | law_3_action_reaction |
+| law1_high_soccer | high | soccer | law_1_inertia |
+| law2_high_soccer | high | soccer | law_2_f_equals_ma |
+| law3_high_soccer | high | soccer | law_3_action_reaction |
+| law1_high_creative_play | high | creative_play | law_1_inertia |
+| law2_high_creative_play | high | creative_play | law_2_f_equals_ma |
+| law3_high_creative_play | high | creative_play | law_3_action_reaction |
+
+`scene_ref` by law: `law_1_inertia` → `rolling_object_scene` · `law_2_f_equals_ma` → `push_strength_scene` · `law_3_action_reaction` → `force_pair_rig_scene`.
+`token` by theme: `soccer` → ⚽ · `creative_play` → 🚗.
+
+## Lesson Records
+
+```json
+[
+{"id":"law1_grade5_soccer","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_1_inertia","gradeBand":"grade5","theme":"soccer",
+ "hook":{"kicker":"Context anchor hook","text":"Your soccer ball is just sitting in the grass. It won't move by itself — someone has to give it a nudge!","options":["See what happens ⚽"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Tap the ball to give it a kick. Watch what it does after.","scene_ref":"rolling_object_scene","token":"⚽","options":["Soft Tap 👟","Big Kick 🦵","No Kick 🚫"],"caption_sequence":["The ball sits still on the grass.","Tap to kick it.","It rolls until it hits the fence."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"grade5":"A resting ball stays resting. A rolling ball keeps rolling — until something like grass, a wall, or a foot stops it. That's called inertia.","high":"Newton's First Law: an object remains at rest or in uniform motion in a straight line unless acted upon by a net external force. On grass, friction is the net force that decelerates the ball."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"grade5":"If nobody touches the ball, what does it do?"},"options":[{"label":"Stays still 🧍","correct":true,"value":"stays_still"},{"label":"Moves by itself 🌀","correct":false,"value":"moves","misconception":"spontaneous_motion"},{"label":"Not sure 🤔","correct":false,"value":"unsure","misconception":"spontaneous_motion"}]},
+ "mistake_genome":{"spontaneous_motion":{"message":"Tricky part: things don't move on their own — that's a great thing to double check!","recommended_support":["show_picture","retry_without_timer"]}},
+ "image_prompt":"A soccer ball resting on grass, simple flat illustration, with a small motion-line question mark above it","image_alt":"Illustration of a soccer ball sitting still on grass."},
+
+{"id":"law2_grade5_soccer","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_2_f_equals_ma","gradeBand":"grade5","theme":"soccer",
+ "hook":{"kicker":"Context anchor hook","text":"Two friends kick the same ball — one soft, one strong. Which one sends it flying farther?","options":["Let's find out ⚽"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Choose a kick strength and watch the ball zoom.","scene_ref":"push_strength_scene","token":"⚽","options":["Small Push","Medium Push","Big Push","What changed? 🔍"],"caption_sequence":["Pick a kick strength.","Watch how far and fast the ball goes.","Bigger kicks send it farther, faster."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"grade5":"A bigger push makes the ball speed up faster. A heavier ball is harder to speed up.","high":"Newton's Second Law: F_net = m·a. Example: a 0.45 kg ball kicked with 90 N accelerates at a = 90/0.45 = 200 m/s²."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"grade5":"Which kick makes the ball speed up the most?"},"options":[{"label":"Big Push","correct":true,"value":"big"},{"label":"Small Push","correct":false,"value":"small","misconception":"push_size_confusion"},{"label":"Same either way","correct":false,"value":"same","misconception":"push_size_confusion"}]},
+ "mistake_genome":{"push_size_confusion":{"message":"Looks like the push-size idea got mixed up. Let's watch it side by side.","recommended_support":["show_picture","similar_problem"]}},
+ "image_prompt":"Two soccer balls mid-flight, one with a short motion trail (soft kick) and one with a long motion trail (big kick), flat illustration","image_alt":"Illustration comparing a softly kicked ball with a short trail to a hard-kicked ball with a long trail."},
+
+{"id":"law3_grade5_soccer","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_3_action_reaction","gradeBand":"grade5","theme":"soccer",
+ "hook":{"kicker":"Context anchor hook","text":"When your foot kicks the ball... does the ball do anything back to your foot?","options":["Let's test it 🦵"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Kick the ball at different strengths and watch your foot too, not just the ball.","scene_ref":"force_pair_rig_scene","token":"⚽","options":["Soft Kick","Hard Kick","Watch my foot 👀"],"caption_sequence":["Foot and ball meet.","Both push on each other at the same time.","The foot feels a push back."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"grade5":"Every push gets a push back! Your foot pushes the ball forward, and the ball pushes your foot backward — same strength, opposite direction.","high":"Newton's Third Law: F(foot→ball) = −F(ball→foot), equal in magnitude, opposite in direction, acting on different objects."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"grade5":"When you kick the ball hard, what happens to your foot?"},"options":[{"label":"Feels a push back 🦵","correct":true,"value":"push_back"},{"label":"Feels nothing","correct":false,"value":"nothing","misconception":"one_way_force_only"},{"label":"Not sure","correct":false,"value":"unsure","misconception":"one_way_force_only"}]},
+ "mistake_genome":{"one_way_force_only":{"message":"The push-back idea is the tricky part here — let's see it with arrows.","recommended_support":["show_picture","easier_version"]}},
+ "image_prompt":"A foot kicking a soccer ball with two equal-length arrows pointing in opposite directions between foot and ball, flat illustration","image_alt":"Illustration of a foot and soccer ball with two equal arrows pointing away from each other, showing the push and push-back."},
+
+{"id":"law1_grade5_creative_play","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_1_inertia","gradeBand":"grade5","theme":"creative_play",
+ "hook":{"kicker":"Context anchor hook","text":"Barbie's little car is parked. It won't roll anywhere until someone gives it a push!","options":["Push the car 🚗"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Tap to push Barbie's car and watch what it does.","scene_ref":"rolling_object_scene","token":"🚗","options":["Gentle Push","Strong Push","No Push"],"caption_sequence":["The car is parked.","Tap to push it.","It rolls until it hits the curb."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"grade5":"A parked car stays parked. A rolling car keeps rolling — until something stops it, like a curb. That's inertia.","high":"Newton's First Law applied to a toy-car system: constant velocity implies net force = 0; friction/curb contact provides the net force that changes its motion."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"grade5":"Once Barbie's car is rolling, what keeps it going?"},"options":[{"label":"It keeps rolling until stopped 🚗","correct":true,"value":"keeps_rolling"},{"label":"It stops right away","correct":false,"value":"stops","misconception":"force_scales_with_speed"},{"label":"Not sure","correct":false,"value":"unsure","misconception":"force_scales_with_speed"}]},
+ "mistake_genome":{"force_scales_with_speed":{"message":"The 'keeps going' part is the tricky bit. Let's watch it roll.","recommended_support":["show_picture","retry_without_timer"]}},
+ "image_prompt":"A small toy car on a driveway with motion lines behind it, simple flat illustration, no branded characters","image_alt":"Illustration of a toy car rolling along a driveway with motion lines."},
+
+{"id":"law2_grade5_creative_play","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_2_f_equals_ma","gradeBand":"grade5","theme":"creative_play",
+ "hook":{"kicker":"Context anchor hook","text":"Barbie wants her car to zoom fast. Should she push soft or push strong?","options":["Help Barbie decide 🚗"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Try different push strengths on Barbie's car.","scene_ref":"push_strength_scene","token":"🚗","options":["Soft Push","Strong Push","What changed? 🔍"],"caption_sequence":["Pick a push strength.","Watch the car speed up.","Bigger pushes mean faster speed-up."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"grade5":"A stronger push makes the car speed up faster. A heavier car (more dolls inside) needs an even bigger push.","high":"F_net = m·a — for a fixed toy-car mass, acceleration scales directly with applied push force; adding mass (more dolls) requires proportionally more force for the same acceleration."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"grade5":"Which push makes Barbie's car speed up fastest?"},"options":[{"label":"Strong Push","correct":true,"value":"strong"},{"label":"Soft Push","correct":false,"value":"soft","misconception":"push_size_confusion"},{"label":"Same either way","correct":false,"value":"same","misconception":"push_size_confusion"}]},
+ "mistake_genome":{"push_size_confusion":{"message":"Push-size and speed-up are the tricky pair here. Let's see them together.","recommended_support":["show_picture","similar_problem"]}},
+ "image_prompt":"A toy car with a small hand pushing gently versus a big hand pushing hard, split illustration showing different speeds","image_alt":"Illustration comparing a gentle push and a strong push on a toy car, with different length motion trails."},
+
+{"id":"law3_grade5_creative_play","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_3_action_reaction","gradeBand":"grade5","theme":"creative_play",
+ "hook":{"kicker":"Context anchor hook","text":"Barbie jumps off her skateboard. What happens to the skateboard when she jumps?","options":["Watch what happens 🛹"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Try different jump strengths and watch the skateboard.","scene_ref":"force_pair_rig_scene","token":"🛹","options":["Small Jump","Big Jump","Watch the board 👀"],"caption_sequence":["Barbie stands on the skateboard.","She pushes off to jump.","The skateboard shoots backward as she jumps forward."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"grade5":"When Barbie pushes off the skateboard, the skateboard pushes back on her — that's why it shoots away as she jumps!","high":"Newton's Third Law: F(Barbie→board) = −F(board→Barbie). Because the board has less mass, it accelerates more for the same force pair (this connects to F=ma, not unequal forces)."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"grade5":"Why does the skateboard shoot backward when Barbie jumps forward?"},"options":[{"label":"It pushes back on her 🛹","correct":true,"value":"pushes_back"},{"label":"It just happens randomly","correct":false,"value":"random","misconception":"one_way_force_only"},{"label":"Not sure","correct":false,"value":"unsure","misconception":"one_way_force_only"}]},
+ "mistake_genome":{"one_way_force_only":{"message":"The push-back idea is the tricky part — let's see it with arrows.","recommended_support":["show_picture","easier_version"]}},
+ "image_prompt":"A toy figure jumping off a skateboard with two arrows showing the figure moving one way and the board moving the opposite way","image_alt":"Illustration of a toy figure jumping forward off a skateboard while the skateboard shoots backward, with two opposite arrows."},
+
+{"id":"law1_high_soccer","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_1_inertia","gradeBand":"high","theme":"soccer",
+ "hook":{"kicker":"Context anchor hook","text":"A ball sits motionless at midfield. Nothing changes its velocity unless a net external force acts on it.","options":["Explore the physics ⚽"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Adjust applied force and friction. Watch how the ball's velocity responds.","scene_ref":"rolling_object_scene","token":"⚽","options":["Zero Force","Force + No Friction","Force + Friction","Graph it 📈"],"caption_sequence":["Set force and friction.","Observe the velocity curve.","Zero net force means constant velocity, including zero."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"high":"Newton's First Law: an object remains at rest or in uniform motion in a straight line unless acted upon by a net external force. On grass, friction is the net force decelerating the ball; on a frictionless surface it would roll forever."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"high":"A ball rolls at constant velocity on ice with negligible friction. What is the net force acting on it?"},"options":[{"label":"Zero N","correct":true,"value":"zero"},{"label":"Equal to its weight","correct":false,"value":"weight","misconception":"force_scales_with_speed"},{"label":"Depends on speed","correct":false,"value":"speed_dependent","misconception":"force_scales_with_speed"}]},
+ "mistake_genome":{"force_scales_with_speed":{"message":"This suggests 'moving = force is acting' — a common inverse mix-up. Constant velocity means net force is zero, even while moving.","recommended_support":["show_picture","similar_problem"]}},
+ "image_prompt":"A force diagram of a soccer ball on ice with balanced arrows summing to zero net force, technical diagram style","image_alt":"Force diagram showing a soccer ball with balanced forces summing to zero net force."},
+
+{"id":"law2_high_soccer","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_2_f_equals_ma","gradeBand":"high","theme":"soccer",
+ "hook":{"kicker":"Context anchor hook","text":"Same ball, two different kicks — one from you, one from a striker generating 3x the force. How does acceleration scale?","options":["Model it ⚽"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Set force and mass independently, observe resulting acceleration.","scene_ref":"push_strength_scene","token":"⚽","options":["Increase Force","Increase Mass","Reset","Show a = F/m 📈"],"caption_sequence":["Adjust force and mass sliders.","Watch acceleration update live.","a = F/m holds at every setting."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"high":"Newton's Second Law: F_net = m·a. A 0.45 kg ball kicked with 90 N accelerates at a = 90/0.45 = 200 m/s²."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"high":"A player applies 60 N to a 0.5 kg ball. What is the resulting acceleration?"},"options":[{"label":"120 m/s²","correct":true,"value":"120"},{"label":"30 m/s²","correct":false,"value":"30","misconception":"f_ma_inversion_error"},{"label":"0.008 m/s²","correct":false,"value":"0.008","misconception":"f_ma_inversion_error"}]},
+ "mistake_genome":{"f_ma_inversion_error":{"message":"This suggests a division/multiplication mix-up in F = ma — let's isolate the variable together.","recommended_support":["step_by_step","similar_problem"]}},
+ "image_prompt":"A labeled force diagram showing F=ma applied to a soccer ball with force, mass, and acceleration vectors annotated","image_alt":"Diagram showing F equals m a applied to a soccer ball, with force, mass, and acceleration labeled."},
+
+{"id":"law3_high_soccer","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_3_action_reaction","gradeBand":"high","theme":"soccer",
+ "hook":{"kicker":"Context anchor hook","text":"When a foot strikes a ball, two forces exist simultaneously — one on the ball, one on the foot. Are they equal?","options":["Analyze the pair ⚽"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Toggle force vectors on both foot and ball during contact.","scene_ref":"force_pair_rig_scene","token":"⚽","options":["Show Foot→Ball","Show Ball→Foot","Show Both","Compare Magnitudes"],"caption_sequence":["Contact begins.","Both force vectors appear, equal length.","Magnitudes match; directions oppose."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"high":"Newton's Third Law: F(foot→ball) = −F(ball→foot). Equal in magnitude, opposite in direction, acting on different objects — which is why they don't cancel out."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"high":"If the foot exerts 90 N on the ball, how much force does the ball exert on the foot?"},"options":[{"label":"90 N, opposite direction","correct":true,"value":"90_opposite"},{"label":"Less than 90 N","correct":false,"value":"less","misconception":"unequal_force_pair"},{"label":"0 N, since the ball is light","correct":false,"value":"zero","misconception":"unequal_force_pair"}]},
+ "mistake_genome":{"unequal_force_pair":{"message":"This points to the 'unequal force pair' misconception — a common one. The forces are always equal in magnitude regardless of mass; let's revisit why.","recommended_support":["show_picture","retry_without_timer"]}},
+ "image_prompt":"A force-pair diagram of a foot and soccer ball in contact with two equal-length opposing vectors, technical style","image_alt":"Force diagram showing a foot and soccer ball with two equal opposing force vectors."},
+
+{"id":"law1_high_creative_play","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_1_inertia","gradeBand":"high","theme":"creative_play",
+ "hook":{"kicker":"Context anchor hook","text":"A toy car + doll system rolls across a smooth floor at constant velocity. What does that tell us about the net force?","options":["Model the system 🚗"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Adjust surface friction and initial push. Observe velocity over time.","scene_ref":"rolling_object_scene","token":"🚗","options":["Low Friction","High Friction","No Push After Start","Graph v(t) 📈"],"caption_sequence":["Set friction and initial push.","Watch the velocity-time graph.","Constant velocity means net force is zero."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"high":"Newton's First Law: constant velocity (including v=0) implies net force = 0. Friction is the deceleration force on real surfaces; on an idealized frictionless floor the system's velocity is constant indefinitely."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"high":"The car-doll system moves at constant 2 m/s across a smooth floor. What's the net force?"},"options":[{"label":"0 N","correct":true,"value":"zero"},{"label":"Proportional to its speed","correct":false,"value":"speed_prop","misconception":"force_scales_with_speed"},{"label":"Proportional to its mass","correct":false,"value":"mass_prop","misconception":"force_scales_with_speed"}]},
+ "mistake_genome":{"force_scales_with_speed":{"message":"This suggests conflating 'moving' with 'force applied' — let's separate velocity from force with a free-body diagram.","recommended_support":["show_picture","similar_problem"]}},
+ "image_prompt":"A free-body diagram of a toy car with a doll on a smooth floor, balanced force arrows summing to zero","image_alt":"Free-body diagram of a toy car and doll with balanced forces summing to zero net force."},
+
+{"id":"law2_high_creative_play","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_2_f_equals_ma","gradeBand":"high","theme":"creative_play",
+ "hook":{"kicker":"Context anchor hook","text":"The doll + car system has a combined mass of 0.3 kg. How much force is needed to accelerate it at 4 m/s²?","options":["Set up the problem 🚗"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Vary mass (add dolls) and force, observe acceleration change in real time.","scene_ref":"push_strength_scene","token":"🚗","options":["Add Mass","Increase Force","Show a = F/m 📈"],"caption_sequence":["Adjust mass and force sliders.","Watch acceleration respond.","Doubling mass halves acceleration at constant force."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"high":"Newton's Second Law: F = ma → F = 0.3 kg × 4 m/s² = 1.2 N. Doubling mass while holding force constant halves acceleration — an inverse relationship."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"high":"If mass doubles and force stays the same, what happens to acceleration?"},"options":[{"label":"Halves","correct":true,"value":"halves"},{"label":"Doubles","correct":false,"value":"doubles","misconception":"f_ma_inversion_error"},{"label":"Stays the same","correct":false,"value":"same","misconception":"f_ma_inversion_error"}]},
+ "mistake_genome":{"f_ma_inversion_error":{"message":"This suggests a direct-vs-inverse relationship mix-up between mass and acceleration. Let's re-examine F = ma term by term.","recommended_support":["step_by_step","similar_problem"]}},
+ "image_prompt":"A labeled diagram of a toy car and doll with mass and force vectors, showing an inverse relationship graph beside it","image_alt":"Diagram of a toy car and doll with force and mass labeled, next to a graph showing acceleration decreasing as mass increases."},
+
+{"id":"law3_high_creative_play","subject":"physics","topic":"newtons_laws_of_motion","concept":"law_3_action_reaction","gradeBand":"high","theme":"creative_play",
+ "hook":{"kicker":"Context anchor hook","text":"The doll launches off a stationary cart. The cart recoils backward. What's the force relationship?","options":["Analyze the launch 🛹"]},
+ "sandbox":{"kicker":"Interactive discovery","prompt":"Vary launch force and observe both doll and cart trajectories simultaneously.","scene_ref":"force_pair_rig_scene","token":"🛹","options":["Small Launch","Big Launch","Show Both Vectors","Compare Magnitudes"],"caption_sequence":["Launch begins.","Equal-magnitude vectors appear on doll and cart.","The lighter cart accelerates more for the same force."]},
+ "concept_screen":{"kicker":"Concept synthesis","text_by_grade":{"high":"Newton's Third Law: F(doll→cart) = −F(cart→doll), equal in magnitude, opposite in direction. The cart is lighter, so it accelerates more per F=ma even though the force on it equals the force on the doll — force pairs are equal, but resulting accelerations depend on each object's mass."}},
+ "diagnostic":{"kicker":"Formative diagnostic","prompt_by_grade":{"high":"The doll and cart experience equal and opposite forces, but the cart moves faster afterward. Why?"},"options":[{"label":"The cart has less mass, so it accelerates more for the same force","correct":true,"value":"less_mass"},{"label":"The cart experiences a bigger force","correct":false,"value":"bigger_force","misconception":"unequal_force_pair"},{"label":"The doll experiences a bigger force","correct":false,"value":"doll_bigger","misconception":"unequal_force_pair"}]},
+ "mistake_genome":{"unequal_force_pair":{"message":"This suggests conflating 'equal force' with 'equal acceleration' — a classic mix-up between the 2nd and 3rd laws. Let's connect F = ma with the force-pair diagram.","recommended_support":["show_picture","retry_without_timer"]}},
+ "image_prompt":"A doll launching off a toy cart with two equal-length opposing force vectors, and a smaller mass icon on the cart","image_alt":"Illustration of a doll launching off a cart with two equal opposing arrows and a smaller mass icon on the cart."}
+]
+```
+
+## Dropped From v1 (18-combo) Set — Kept for Reference, Not Shipped in Demo
+
+The 6 `anime_stories` records (`law1–3_elem_anime_stories`, `law1–3_high_anime_stories`) authored in the original 18-combination pass are not deleted from the project, only excluded from this demo build's active library. Full text remains in `newtons_laws_demo_screens.md` if the demo scope is later expanded back to 3 themes.

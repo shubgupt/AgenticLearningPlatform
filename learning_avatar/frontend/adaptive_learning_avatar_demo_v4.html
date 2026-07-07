@@ -1,0 +1,2354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Learning Avatar Demo v4 — Modular</title>
+  <style>
+    :root {
+      --bg0: #0b1020;
+      --bg1: #111a33;
+      --bg2: #172245;
+      --card: rgba(255, 255, 255, 0.08);
+      --card2: rgba(255, 255, 255, 0.12);
+      --border: rgba(255, 255, 255, 0.18);
+      --text: #f8fbff;
+      --muted: #b7c5e4;
+      --soft: #dbe7ff;
+      --accent: #75f0ff;
+      --accent2: #a78bfa;
+      --accent3: #ffd166;
+      --good: #7CFFB2;
+      --warn: #FFD166;
+      --danger: #FF6B6B;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+      --radius: 26px;
+      --radius2: 18px;
+      --tap: 52px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(117, 240, 255, 0.22), transparent 32%),
+        radial-gradient(circle at 80% 25%, rgba(167, 139, 250, 0.22), transparent 30%),
+        radial-gradient(circle at 50% 100%, rgba(255, 209, 102, 0.10), transparent 42%),
+        linear-gradient(145deg, var(--bg0), var(--bg1) 52%, #0b1228);
+      overflow-x: hidden;
+    }
+
+    body.low-density {
+      --card: rgba(255, 255, 255, 0.11);
+      --tap: 62px;
+    }
+
+    .app {
+      width: min(1180px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 24px 0 34px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 260px;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(117, 240, 255, 0.32), rgba(167, 139, 250, 0.32));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      font-size: 24px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip, .ghost-button {
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--soft);
+      border-radius: 999px;
+      padding: 10px 13px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: 180ms ease;
+      backdrop-filter: blur(14px);
+    }
+
+    .chip:hover, .ghost-button:hover, .option:hover {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .stage {
+      min-height: 690px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.06));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .stage::before {
+      content: "";
+      position: absolute;
+      inset: -40% -20% auto auto;
+      width: 420px;
+      height: 420px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(117, 240, 255, 0.16), transparent 65%);
+      pointer-events: none;
+    }
+
+    .stage-inner {
+      position: relative;
+      min-height: 690px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 22px;
+    }
+
+    .screen-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .screen-label strong {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .progress-shell {
+      height: 10px;
+      flex: 1;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.10);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+      transition: width 420ms ease;
+    }
+
+    .main-card {
+      display: grid;
+      grid-template-columns: 185px minmax(0, 1fr);
+      gap: 22px;
+      align-items: center;
+    }
+
+    .avatar-panel {
+      display: grid;
+      place-items: center;
+      gap: 14px;
+      align-self: stretch;
+    }
+
+    .avatar-orb {
+      position: relative;
+      width: 155px;
+      height: 155px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.95), transparent 11%),
+        radial-gradient(circle at 45% 38%, rgba(117, 240, 255, 0.94), rgba(167, 139, 250, 0.7) 45%, rgba(255, 209, 102, 0.45) 78%);
+      box-shadow:
+        0 0 40px rgba(117, 240, 255, 0.25),
+        inset 0 -22px 45px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      animation: float 4.2s ease-in-out infinite;
+    }
+
+    .avatar-orb::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    body.reduced-motion .avatar-orb {
+      animation: none;
+    }
+
+    .avatar-stats {
+      width: 100%;
+      display: grid;
+      gap: 9px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stat-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 11px;
+      border: 1px solid rgba(255,255,255,0.11);
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+    }
+
+    .copy h2 {
+      margin: 0 0 10px;
+      font-size: clamp(31px, 4.4vw, 56px);
+      letter-spacing: -0.06em;
+      line-height: 0.96;
+    }
+
+    .copy .kicker {
+      color: var(--accent3);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 10px;
+    }
+
+    .copy p {
+      margin: 0;
+      color: var(--soft);
+      font-size: clamp(16px, 1.7vw, 21px);
+      line-height: 1.45;
+      max-width: 680px;
+    }
+
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .option {
+      min-height: var(--tap);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.07));
+      color: var(--text);
+      border-radius: 18px;
+      padding: 15px 16px;
+      font-size: 15px;
+      font-weight: 750;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      transition: 180ms ease;
+      text-align: left;
+    }
+
+    .option small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .reward {
+      color: var(--good);
+      font-size: 14px;
+      font-weight: 800;
+      margin-top: 16px;
+    }
+
+    .safety-valves {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .safety-valves button {
+      min-height: 44px;
+      border: 1px solid rgba(255,255,255,0.14);
+      color: var(--soft);
+      background: rgba(255,255,255,0.06);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: 160ms ease;
+      font-weight: 700;
+    }
+
+    .safety-valves button:hover {
+      background: rgba(255,255,255,0.13);
+      transform: translateY(-1px);
+    }
+
+    .side {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.06));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .panel .panel-note {
+      color: var(--muted);
+      font-size: 11px;
+      margin: -6px 0 12px;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      font-size: 12px;
+      color: var(--soft);
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.07);
+    }
+
+    .json-panel {
+      font-size: 11px;
+      line-height: 1.45;
+      color: #d8e4ff;
+      white-space: pre-wrap;
+      max-height: 280px;
+      overflow: auto;
+      margin: 0;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .quest-map {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .quest-node {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 15px;
+      min-height: 112px;
+      cursor: pointer;
+      transition: 180ms ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quest-node:hover {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.13);
+    }
+
+    .quest-node.locked {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .quest-node.locked:hover {
+      transform: none;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .quest-node strong {
+      display: block;
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    .quest-node span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .status-dot {
+      position: absolute;
+      top: 13px;
+      right: 13px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 15px var(--accent);
+    }
+
+    .sandbox {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 18px;
+    }
+
+    .sim-card {
+      background: rgba(0,0,0,0.20);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 22px;
+      padding: 18px;
+      min-height: 280px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sim-world {
+      height: 190px;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(117,240,255,0.12), transparent),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 28px);
+      border: 1px solid rgba(255,255,255,0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .block {
+      position: absolute;
+      top: 76px;
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      transition: 260ms ease;
+      border: 1px solid rgba(255,255,255,0.28);
+    }
+
+    .block.a {
+      left: 36px;
+      background: linear-gradient(135deg, rgba(117,240,255,0.85), rgba(117,240,255,0.22));
+    }
+
+    .block.b {
+      right: 36px;
+      background: linear-gradient(135deg, rgba(255,209,102,0.85), rgba(255,209,102,0.20));
+    }
+
+    .wall-marker {
+      position: absolute;
+      right: 14px;
+      top: 14px;
+      bottom: 14px;
+      width: 6px;
+      border-radius: 999px;
+      background: repeating-linear-gradient(180deg, rgba(255,255,255,0.35) 0 6px, transparent 6px 12px);
+    }
+
+    .push-readout {
+      position: absolute;
+      left: 36px;
+      bottom: 12px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .force-arrow {
+      position: absolute;
+      top: 104px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--good);
+      box-shadow: 0 0 16px rgba(124,255,178,0.36);
+      transition: 220ms ease;
+    }
+
+    .force-arrow.left {
+      left: 98px;
+    }
+
+    .force-arrow.right {
+      right: 98px;
+      background: var(--danger);
+      box-shadow: 0 0 16px rgba(255,107,107,0.36);
+    }
+
+    .slider-row {
+      margin-top: 16px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #75f0ff;
+    }
+
+    .mini-game-red {
+      width: min(260px, 80vw);
+      height: 130px;
+      margin: 24px auto 4px;
+      border-radius: 999px;
+      border: 0;
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+      cursor: pointer;
+      background: radial-gradient(circle at 35% 30%, #ffb2b2, #f94144 35%, #9d0208 100%);
+      box-shadow: 0 22px 42px rgba(249, 65, 68, 0.32), inset 0 -13px 0 rgba(0,0,0,0.22);
+      transform: translateY(0);
+      transition: 120ms ease;
+    }
+
+    .mini-game-red:active {
+      transform: translateY(6px);
+      box-shadow: 0 10px 18px rgba(249, 65, 68, 0.24), inset 0 -7px 0 rgba(0,0,0,0.20);
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.62);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      padding: 18px;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      width: min(620px, 100%);
+      border-radius: 30px;
+      border: 1px solid var(--border);
+      background:
+        radial-gradient(circle at top left, rgba(117,240,255,0.15), transparent 38%),
+        linear-gradient(180deg, rgba(24,32,58,0.98), rgba(12,18,38,0.98));
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .modal h2 {
+      margin: 0 0 9px;
+      font-size: 34px;
+      letter-spacing: -0.05em;
+    }
+
+    .modal p {
+      color: var(--soft);
+      margin: 0 0 18px;
+      line-height: 1.45;
+    }
+
+    .timer {
+      font-size: 54px;
+      font-weight: 900;
+      letter-spacing: -0.07em;
+      color: var(--accent);
+      text-align: center;
+      padding: 10px;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .metric {
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .metric strong {
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .chair-scene {
+      height: 240px;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(117,240,255,0.10), transparent 48%),
+        linear-gradient(180deg, transparent 0 78%, rgba(255,255,255,0.08) 78% 79%, transparent 79% 100%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chair-scene::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 42px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.24), transparent);
+    }
+
+    .student-rig {
+      position: absolute;
+      bottom: 42px;
+      width: 120px;
+      height: 150px;
+      transition: transform 900ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .student-rig.left {
+      left: 34px;
+      transform: translateX(0);
+    }
+
+    .student-rig.right {
+      right: 34px;
+      transform: translateX(0);
+    }
+
+    .student-rig.pushing.left {
+      transform: translateX(-48px);
+    }
+
+    .student-rig.pushing.right {
+      transform: translateX(48px);
+    }
+
+    .student-rig .chair {
+      position: absolute;
+      bottom: 0;
+      left: 18px;
+      width: 84px;
+      height: 54px;
+      border-radius: 16px 16px 12px 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+      border: 1px solid rgba(255,255,255,0.24);
+      box-shadow: inset 0 -8px 18px rgba(0,0,0,0.2);
+    }
+
+    .student-rig .chair::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: -14px;
+      height: 16px;
+      border-radius: 12px 12px 4px 4px;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.22);
+    }
+
+    .student-rig .wheel {
+      position: absolute;
+      bottom: -8px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.18);
+    }
+
+    .student-rig .wheel.w1 { left: 14px; }
+    .student-rig .wheel.w2 { left: 54px; }
+    .student-rig .wheel.w3 { right: 14px; }
+
+    .student-rig .person {
+      position: absolute;
+      left: 32px;
+      bottom: 42px;
+      width: 56px;
+      height: 88px;
+    }
+
+    .student-rig.right .person {
+      left: 34px;
+    }
+
+    .student-rig .head {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #ffd7b8, #e9b98a);
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,0.08);
+    }
+
+    .student-rig .torso {
+      width: 40px;
+      height: 34px;
+      border-radius: 12px;
+      margin: 4px auto 0;
+      background: linear-gradient(180deg, rgba(117,240,255,0.8), rgba(167,139,250,0.6));
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .student-rig.right .torso {
+      background: linear-gradient(180deg, rgba(255,209,102,0.85), rgba(255,107,107,0.58));
+    }
+
+    .student-rig .arm {
+      position: absolute;
+      top: 38px;
+      width: 34px;
+      height: 8px;
+      border-radius: 999px;
+      background: #f4c49d;
+      transform-origin: center;
+      transition: transform 260ms ease, width 260ms ease;
+    }
+
+    .student-rig.left .arm.front {
+      left: 30px;
+      transform: rotate(0deg);
+    }
+
+    .student-rig.right .arm.front {
+      right: 30px;
+      transform: rotate(180deg);
+    }
+
+    .student-rig.left.ready .arm.front {
+      width: 58px;
+      transform: rotate(0deg);
+    }
+
+    .student-rig.right.ready .arm.front {
+      width: 58px;
+      transform: rotate(180deg);
+    }
+
+    .student-rig .arm.back {
+      opacity: 0.55;
+      top: 48px;
+      width: 24px;
+    }
+
+    .student-rig.left .arm.back {
+      left: 18px;
+      transform: rotate(150deg);
+    }
+
+    .student-rig.right .arm.back {
+      right: 18px;
+      transform: rotate(30deg);
+    }
+
+    .student-rig .leg {
+      position: absolute;
+      bottom: 0px;
+      width: 24px;
+      height: 8px;
+      border-radius: 999px;
+      background: #6ea8ff;
+      opacity: 0.75;
+    }
+
+    .student-rig .leg.l1 { left: 12px; transform: rotate(18deg); }
+    .student-rig .leg.l2 { right: 12px; transform: rotate(-18deg); }
+
+    .push-flash {
+      position: absolute;
+      left: 50%;
+      top: 95px;
+      transform: translateX(-50%) scale(0.8);
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.85), rgba(117,240,255,0.35) 45%, transparent 72%);
+      opacity: 0;
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+    }
+
+    .push-flash.active {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.15);
+    }
+
+    .scene-arrow {
+      position: absolute;
+      top: 102px;
+      height: 10px;
+      border-radius: 999px;
+      opacity: 0;
+      transition: opacity 260ms ease, width 260ms ease;
+    }
+
+    .scene-arrow.visible { opacity: 1; }
+    .scene-arrow.left {
+      left: 162px;
+      background: var(--good);
+      box-shadow: 0 0 16px rgba(124,255,178,0.36);
+    }
+
+    .scene-arrow.right {
+      right: 162px;
+      background: var(--danger);
+      box-shadow: 0 0 16px rgba(255,107,107,0.36);
+    }
+
+    .scene-caption {
+      margin-top: 14px;
+      min-height: 26px;
+      color: var(--soft);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    body.reduced-motion .student-rig,
+    body.reduced-motion .push-flash,
+    body.reduced-motion .scene-arrow,
+    body.reduced-motion .block,
+    body.reduced-motion #rollBlock,
+    body.reduced-motion #pushBlock {
+      transition: none !important;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .main-card {
+        grid-template-columns: 1fr;
+      }
+
+      .avatar-panel {
+        grid-template-columns: 145px 1fr;
+      }
+
+      .avatar-orb {
+        width: 128px;
+        height: 128px;
+      }
+
+      .sandbox {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .app {
+        width: min(100vw - 18px, 1180px);
+        padding-top: 12px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .stage-inner {
+        padding: 18px;
+        min-height: 700px;
+      }
+
+      .stage {
+        min-height: 700px;
+      }
+
+      .option-grid,
+      .quest-map,
+      .dashboard-grid,
+      .safety-valves,
+      .side {
+        grid-template-columns: 1fr;
+      }
+
+      .avatar-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">🧠</div>
+        <div>
+          <h1>Adaptive Learning Avatar Demo v4</h1>
+          <p>Modular · Root/Teaching/Assessment split · Data-driven Newton's Laws library</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="ghost-button" id="restartBtn">Restart Demo</button>
+        <button class="ghost-button" id="teacherBtn">Teacher Dashboard</button>
+        <button class="ghost-button" id="motionBtn">Reduce Motion</button>
+      </div>
+    </header>
+
+    <section class="hero-grid">
+      <div class="stage">
+        <div class="stage-inner">
+          <div>
+            <div class="screen-label">
+              <span><strong id="screenName">Energy Check</strong> · <span id="modeLabel">Adaptive UI</span></span>
+              <div class="progress-shell" aria-label="Progress">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+            </div>
+
+            <div id="screenRoot" aria-live="polite"></div>
+          </div>
+
+          <div class="safety-valves" aria-label="Safety controls">
+            <button data-valve="bored">Bored, change topic! 🔄</button>
+            <button data-valve="reading">Too much reading! 🎨</button>
+            <button data-valve="surprise">Surprise me! 🎲</button>
+            <button data-valve="break">I need a break 🥔</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="side">
+        <section class="panel">
+          <h3>Learning Avatar Snapshot</h3>
+          <div class="tag-list" id="profileTags"></div>
+        </section>
+        <section class="panel">
+          <h3>Internal State Preview</h3>
+          <p class="panel-note">Developer/teacher-only view — never shown to a real student build.</p>
+          <pre class="json-panel" id="stateJson"></pre>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <div class="overlay" id="breakOverlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h2>Recharge Mode 🥔</h2>
+      <p>Good call. Breaks are part of the strategy, not a failure state.</p>
+      <div class="timer" id="timerDisplay">Ready?</div>
+      <div class="option-grid">
+        <button class="option" data-break="60">1 min ⚡</button>
+        <button class="option" data-break="180">3 min 🔋</button>
+        <button class="option" data-break="300">5 min 🥔</button>
+        <button class="option" data-break="0">I’m ready now ✅</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------------------------------------------------------------------
+    // Content now lives on the backend, not here. This file used to embed
+    // a 12-record LESSON_LIBRARY array and look content up locally with
+    // resolveLessonRecord(ctx). That's gone — lessons are now fetched from
+    // the Teaching Agent over HTTP (fetchLessonRecord, below), which on the
+    // server side checks the same content (now living at
+    // src/learning_avatar/content/newtons_laws_lesson_library.json, served
+    // through a real MCP server) before ever falling back to generation.
+    //
+    // API_BASE is empty because this page is served BY the same FastAPI app
+    // it's calling (see web/main.py's StaticFiles/FileResponse mount) — one
+    // origin, so no CORS configuration is needed for fetch() to work.
+    // ---------------------------------------------------------------------
+    const API_BASE = "";
+    let sessionId = null;
+
+    async function bootstrapSession() {
+      const res = await fetch(`${API_BASE}/api/session`, { method: "POST" });
+      if (!res.ok) throw new Error(`Could not start a session (${res.status})`);
+      const data = await res.json();
+      sessionId = data.session_id;
+    }
+
+    async function safeErrorText(res) {
+      try {
+        const data = await res.json();
+        if (typeof data.detail === "string") return data.detail;
+        if (data.detail && data.detail.message) return data.detail.message;
+      } catch (e) { /* body wasn't JSON, fall through */ }
+      return `Request failed (${res.status})`;
+    }
+
+    // Replaces the old synchronous resolveLessonRecord(ctx) array lookup.
+    // Same call signature/shape from the caller's point of view — it just
+    // takes a network round trip now instead of being instant.
+    async function fetchLessonRecord(ctx) {
+      try {
+        const res = await fetch(`${API_BASE}/api/session/${sessionId}/lesson`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ concept: ctx.concept, gradeBand: ctx.gradeBand, theme: ctx.theme })
+        });
+        if (!res.ok) {
+          return { record: null, content_source: null, error: await safeErrorText(res) };
+        }
+        const data = await res.json();
+        return { record: data.record, content_source: data.content_source, error: null };
+      } catch (e) {
+        return { record: null, content_source: null, error: "Could not reach the backend. Is it running?" };
+      }
+    }
+
+    /* removed: const LESSON_LIBRARY = [ ...12 records... ];
+       that data now lives server-side at
+       src/learning_avatar/content/newtons_laws_lesson_library.json,
+       loaded by learning_avatar/core/content_library.py and served over
+       MCP by learning_avatar/mcp/server.py. */
+
+    const LAW_SEQUENCE = ["law_1_inertia", "law_2_f_equals_ma", "law_3_action_reaction"];
+    const LAW_LABELS = {
+      law_1_inertia: "Law 1 · Inertia",
+      law_2_f_equals_ma: "Law 2 · F = ma",
+      law_3_action_reaction: "Law 3 · Action-Reaction"
+    };
+
+    const screens = [
+      "energy",
+      "grade",
+      "interest",
+      "recipe",
+      "quest",
+      "lesson",
+      "check",
+      "checkpoint",
+      "validate",
+      "dashboard"
+    ];
+
+    const state = {
+      screen: "energy",
+      xp: 0,
+      lowDensity: false,
+      reducedMotion: false,
+      ageBand: "unknown",
+      energy: "unknown",
+      interest: "unknown",
+      learningStyleMix: {},
+      preferredBlend: [],
+      fatigue: "unknown",
+      gamePositive: false,
+      profileConfidence: 0.1,
+      teacherMode: false,
+      mistakeGenome: [],
+      subjectContext: {
+        subject: "physics",
+        topic: "newtons_laws_of_motion",
+        concept: "law_1_inertia",
+        gradeBand: "unknown",
+        theme: "unknown"
+      },
+      questProgress: { lawIndex: 0 },
+      contentSource: null,
+      currentRecord: null,
+      checkpointIndex: 0,
+      recordCache: {},
+      signals: {
+        attentionSpan: "unknown",
+        confusionSensitivity: "unknown",
+        revisionNeed: "unknown",
+        timeManagement: "unknown",
+        selfConfidence: "unknown",
+        processingPace: "unknown",
+        motivationDrivers: [],
+        chitchatTendency: "unknown",
+        distractionRisk: "unknown",
+        fatigueAndBreakNeeds: "unknown",
+        gameEngagementPreference: "unknown"
+      }
+    };
+
+    const root = document.getElementById("screenRoot");
+    const profileTags = document.getElementById("profileTags");
+    const stateJson = document.getElementById("stateJson");
+    const screenName = document.getElementById("screenName");
+    const modeLabel = document.getElementById("modeLabel");
+    const progressFill = document.getElementById("progressFill");
+    const breakOverlay = document.getElementById("breakOverlay");
+    const timerDisplay = document.getElementById("timerDisplay");
+
+    function titleCase(str) {
+      return String(str || "unknown").replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function escapeAttr(str) {
+      return String(str || "").replace(/"/g, "&quot;");
+    }
+
+    function setScreen(screen) {
+      state.screen = screen;
+      render();
+    }
+
+    function addXP(amount) {
+      state.xp += amount;
+    }
+
+    function setLowDensity(isLow) {
+      state.lowDensity = isLow;
+      document.body.classList.toggle("low-density", isLow);
+    }
+
+    function updateProfile(patch) {
+      Object.assign(state, patch);
+      state.profileConfidence = Math.min(0.92, state.profileConfidence + 0.08);
+    }
+
+    function button(label, onClick, subtext = "") {
+      const safeSub = subtext ? `<small>${subtext}</small>` : "";
+      return `<button class="option" type="button" data-action="${escapeAttr(label)}">
+        <span>${label}${safeSub}</span><span>›</span>
+      </button>`;
+    }
+
+    function bindOptions(map) {
+      root.querySelectorAll("[data-action]").forEach(btn => {
+        const key = btn.getAttribute("data-action");
+        btn.addEventListener("click", () => map[key]?.());
+      });
+    }
+
+    function mainCard({ kicker, title, text, reward, optionsHtml, extra = "" }) {
+      return `
+        <div class="main-card">
+          <div class="avatar-panel">
+            <div class="avatar-orb" aria-hidden="true"></div>
+            <div class="avatar-stats">
+              <div class="stat-line"><span>XP</span><strong>${state.xp}</strong></div>
+              <div class="stat-line"><span>Energy</span><strong>${titleCase(state.energy)}</strong></div>
+              <div class="stat-line"><span>Mode</span><strong>${state.lowDensity ? "Low Text" : "Adaptive"}</strong></div>
+            </div>
+          </div>
+          <div class="copy">
+            <div class="kicker">${kicker}</div>
+            <h2>${title}</h2>
+            <p>${text}</p>
+            ${extra}
+            <div class="option-grid">${optionsHtml}</div>
+            <div class="reward">${reward}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ---------------------------------------------------------------------
+    // Onboarding screens
+    // ---------------------------------------------------------------------
+
+    function renderEnergy() {
+      root.innerHTML = mainCard({
+        kicker: "Avatar boot sequence",
+        title: "Build your learning avatar",
+        text: "Before the lab starts, what is your battery level today?",
+        reward: "+50 XP · Vibe Scan Started",
+        optionsHtml: [
+          button("Sleeping Potato 🥔", null, "very low energy"),
+          button("Low Battery 🔋", null, "short + easy mode"),
+          button("Steady Mode 😎", null, "normal pace"),
+          button("Rocket Mode 🚀", null, "challenge ready")
+        ].join("")
+      });
+
+      bindOptions({
+        "Sleeping Potato 🥔": () => {
+          addXP(50);
+          updateProfile({ energy: "sleeping potato", fatigue: "high" });
+          state.signals.fatigueAndBreakNeeds = "offer_break_or_easy_mode";
+          setLowDensity(true);
+          setScreen("grade");
+        },
+        "Low Battery 🔋": () => {
+          addXP(50);
+          updateProfile({ energy: "low battery", fatigue: "medium" });
+          state.signals.fatigueAndBreakNeeds = "short_tasks";
+          setLowDensity(true);
+          setScreen("grade");
+        },
+        "Steady Mode 😎": () => {
+          addXP(50);
+          updateProfile({ energy: "steady", fatigue: "low" });
+          setLowDensity(false);
+          setScreen("grade");
+        },
+        "Rocket Mode 🚀": () => {
+          addXP(50);
+          updateProfile({ energy: "rocket", fatigue: "low", gamePositive: true });
+          state.signals.gameEngagementPreference = "likely_positive";
+          setLowDensity(false);
+          setScreen("grade");
+        }
+      });
+    }
+
+    // Demo scope: only the 2 grade bands covered by the content library.
+    function renderGrade() {
+      root.innerHTML = mainCard({
+        kicker: "Age-aware UI calibration",
+        title: "Pick your learning zone",
+        text: state.lowDensity ? "We’ll keep this light and button-based." : "This helps the app adjust vocabulary, visuals, rigor, and game style.",
+        reward: "+75 XP · Sensor Calibration Ready",
+        optionsHtml: [
+          button("5th–6th Grade 🌟", null, "visual + playful"),
+          button("High School+ 🎓", null, "clean + rigorous")
+        ].join("")
+      });
+
+      bindOptions({
+        "5th–6th Grade 🌟": () => {
+          addXP(75);
+          updateProfile({ ageBand: "elementary" });
+          state.subjectContext.gradeBand = "grade5";
+          setScreen("interest");
+        },
+        "High School+ 🎓": () => {
+          addXP(75);
+          updateProfile({ ageBand: "high" });
+          state.subjectContext.gradeBand = "high";
+          setScreen("interest");
+        }
+      });
+    }
+
+    // Demo scope: only the 2 themes covered by the content library.
+    function renderInterest() {
+      const prompt = state.ageBand === "high"
+        ? "Choose the theme that would make lessons feel less generic."
+        : "Your avatar needs a power source. What world do you usually enjoy most?";
+
+      root.innerHTML = mainCard({
+        kicker: "Personalization engine",
+        title: "Choose a power source",
+        text: prompt,
+        reward: "+75 XP · Interest Engine Online",
+        optionsHtml: [
+          button("Sports ⚽", null, "motion + competition"),
+          button("Creative Play 🧕🏻", null, "characters + story")
+        ].join("")
+      });
+
+      bindOptions({
+        "Sports ⚽": () => {
+          addXP(75);
+          updateProfile({ interest: "sports" });
+          state.signals.motivationDrivers.push("competition");
+          state.subjectContext.theme = "soccer";
+          setScreen("recipe");
+        },
+        "Creative Play 🧕🏻": () => {
+          addXP(75);
+          updateProfile({ interest: "creative_play" });
+          state.signals.motivationDrivers.push("story_progress");
+          state.subjectContext.theme = "creative_play";
+          setScreen("recipe");
+        }
+      });
+    }
+
+    function renderRecipe() {
+      root.innerHTML = mainCard({
+        kicker: "Blended learning recipe",
+        title: "Pick a learning combo",
+        text: "No fixed labels. Your recipe can change by subject, mood, and difficulty.",
+        reward: "+100 XP · Learning Recipe Started",
+        optionsHtml: [
+          button("Visual + Steps 🎨🪜", null, "pictures, then small steps"),
+          button("Story + Example 📖🧩", null, "hook first, example next"),
+          button("Practice + Hints 🎯💡", null, "try, then get help"),
+          button("Chill + Recap 🧘🔁", null, "calm review mode")
+        ].join("")
+      });
+
+      bindOptions({
+        "Visual + Steps 🎨🪜": () => {
+          addXP(100);
+          updateProfile({
+            preferredBlend: ["visual_examples", "step_by_step"],
+            learningStyleMix: { visual_examples: .78, step_by_step: .72, practice_first: .42 }
+          });
+          setScreen("quest");
+        },
+        "Story + Example 📖🧩": () => {
+          addXP(100);
+          updateProfile({
+            preferredBlend: ["story_mode", "examples"],
+            learningStyleMix: { story_mode: .78, examples: .72, visual_examples: .42 }
+          });
+          setScreen("quest");
+        },
+        "Practice + Hints 🎯💡": () => {
+          addXP(100);
+          updateProfile({
+            preferredBlend: ["practice_first", "hint_ladder"],
+            learningStyleMix: { practice_first: .78, hints: .72, teach_back: .45 }
+          });
+          setScreen("quest");
+        },
+        "Chill + Recap 🧘🔁": () => {
+          addXP(100);
+          updateProfile({
+            preferredBlend: ["chill_mode", "quick_recap"],
+            learningStyleMix: { chill_mode: .82, recap: .74, visual_examples: .42 }
+          });
+          setLowDensity(true);
+          setScreen("quest");
+        }
+      });
+    }
+
+    // ---------------------------------------------------------------------
+    // Quest map — Force Lab wired to the content library; others locked
+    // ---------------------------------------------------------------------
+
+    function renderQuest() {
+      const done = state.questProgress.lawIndex >= LAW_SEQUENCE.length;
+      const currentLaw = done ? LAW_SEQUENCE[LAW_SEQUENCE.length - 1] : state.subjectContext.concept;
+      const forceLabStatus = done ? "Mastered" : "Boss Fight Active";
+      const forceLabSub = done ? "All 3 laws cleared" : (LAW_LABELS[currentLaw] || "Newton's Laws");
+
+      const nodes = [
+        { label: "Force Lab 🧪", status: forceLabStatus, sub: forceLabSub, locked: false },
+        { label: "Fractions Forest 🌲", status: "Locked", sub: "Coming soon", locked: true },
+        { label: "Memory Cave 🔁", status: "Locked", sub: "Coming soon", locked: true },
+        { label: "Writing Workshop ✍️", status: "Locked", sub: "Coming soon", locked: true }
+      ];
+
+      root.innerHTML = `
+        <div class="copy">
+          <div class="kicker">Living quest map</div>
+          <h2>Choose today’s mission</h2>
+          <p>${state.lowDensity ? "One tap. One mission." : "Force Lab unlocks Newton's Laws one boss fight at a time; other zones are still being built."}</p>
+          <div class="quest-map">
+            ${nodes.map((n, i) => `
+              <div class="quest-node ${n.locked ? "locked" : ""}" data-quest="${i}" ${n.locked ? 'aria-disabled="true" tabindex="-1"' : 'tabindex="0"'}>
+                <div class="status-dot" style="${n.locked ? "background:var(--muted);box-shadow:none;" : ""}"></div>
+                <strong>${n.label}</strong>
+                <span>${n.status} · ${n.sub}</span>
+              </div>
+            `).join("")}
+          </div>
+          <div class="reward">+125 XP · Quest Map Unlocked</div>
+        </div>
+      `;
+
+      root.querySelectorAll("[data-quest]").forEach((node, i) => {
+        if (nodes[i].locked) return;
+        node.addEventListener("click", () => {
+          addXP(125);
+          if (done) {
+            state.questProgress.lawIndex = 0;
+            state.subjectContext.concept = LAW_SEQUENCE[0];
+          } else {
+            state.subjectContext.concept = currentLaw;
+          }
+          setScreen("lesson");
+        });
+      });
+    }
+
+    // ---------------------------------------------------------------------
+    // Content resolution now happens over the network — see
+    // fetchLessonRecord(ctx) near the top of this file, which calls the
+    // real Teaching Agent via POST /api/session/{id}/lesson.
+    // ---------------------------------------------------------------------
+
+    // ---------------------------------------------------------------------
+    // Lesson screen — hook + sandbox scene + concept, driven by the record
+    // ---------------------------------------------------------------------
+
+    function sceneMarkup(record) {
+      if (record.sandbox.scene_ref === "force_pair_rig_scene") {
+        return `
+          <div class="chair-scene" id="chairScene">
+            <div class="student-rig left" id="leftRig">
+              <div class="person">
+                <div class="head"></div>
+                <div class="torso"></div>
+                <div class="arm back"></div>
+                <div class="arm front"></div>
+                <div class="leg l1"></div>
+                <div class="leg l2"></div>
+              </div>
+              <div class="chair">
+                <div class="wheel w1"></div>
+                <div class="wheel w2"></div>
+                <div class="wheel w3"></div>
+              </div>
+            </div>
+            <div class="student-rig right" id="rightRig">
+              <div class="person">
+                <div class="head"></div>
+                <div class="torso"></div>
+                <div class="arm back"></div>
+                <div class="arm front"></div>
+                <div class="leg l1"></div>
+                <div class="leg l2"></div>
+              </div>
+              <div class="chair">
+                <div class="wheel w1"></div>
+                <div class="wheel w2"></div>
+                <div class="wheel w3"></div>
+              </div>
+            </div>
+            <div class="push-flash" id="pushFlash"></div>
+            <div class="scene-arrow left" id="sceneArrowLeft"></div>
+            <div class="scene-arrow right" id="sceneArrowRight"></div>
+          </div>
+        `;
+      }
+      if (record.sandbox.scene_ref === "rolling_object_scene") {
+        return `
+          <div class="chair-scene" id="rollTrack" style="height:190px;">
+            <div class="block a" id="rollBlock" style="top:66px;left:36px;">${record.sandbox.token}</div>
+            <div class="wall-marker"></div>
+          </div>
+        `;
+      }
+      // push_strength_scene
+      return `
+        <div class="chair-scene" id="pushTrack" style="height:190px;">
+          <div class="block a" id="pushBlock" style="top:66px;left:36px;">${record.sandbox.token}</div>
+          <div class="wall-marker"></div>
+          <div class="push-readout" id="pushReadout">a = F / m</div>
+        </div>
+      `;
+    }
+
+    function sceneShell(record) {
+      const controlsHtml = record.sandbox.options
+        .map(label => `<button class="option" type="button" data-scene-action="${escapeAttr(label)}">${label}</button>`)
+        .join("");
+      return `
+        <div class="kicker">${record.sandbox.kicker}</div>
+        <p style="color:var(--soft);margin:6px 0 14px">${record.sandbox.prompt}</p>
+        ${sceneMarkup(record)}
+        <div class="scene-caption" id="sceneCaption">Pick an option to begin.</div>
+        <div class="option-grid" style="margin-top:14px">${controlsHtml}</div>
+      `;
+    }
+
+    function playForcePairScene(captions) {
+      const leftRig = document.getElementById("leftRig");
+      const rightRig = document.getElementById("rightRig");
+      const flash = document.getElementById("pushFlash");
+      const leftArrow = document.getElementById("sceneArrowLeft");
+      const rightArrow = document.getElementById("sceneArrowRight");
+      const caption = document.getElementById("sceneCaption");
+      if (!leftRig || !rightRig) return;
+
+      const c = captions && captions.length === 3
+        ? captions
+        : ["Both sides get ready.", "They push on each other at the same time.", "Both move apart — equal push, opposite directions."];
+
+      const fast = state.reducedMotion;
+      const t1 = fast ? 0 : 120, t2 = fast ? 0 : 650, t3 = fast ? 0 : 960, t4 = fast ? 0 : 1800;
+
+      leftRig.classList.remove("ready", "pushing");
+      rightRig.classList.remove("ready", "pushing");
+      flash.classList.remove("active");
+      leftArrow.classList.remove("visible");
+      rightArrow.classList.remove("visible");
+      leftArrow.style.width = "0px";
+      rightArrow.style.width = "0px";
+
+      caption.textContent = c[0];
+      setTimeout(() => {
+        leftRig.classList.add("ready");
+        rightRig.classList.add("ready");
+      }, t1);
+
+      setTimeout(() => {
+        caption.textContent = c[1];
+        flash.classList.add("active");
+        leftArrow.classList.add("visible");
+        rightArrow.classList.add("visible");
+        leftArrow.style.width = "88px";
+        rightArrow.style.width = "88px";
+      }, t2);
+
+      setTimeout(() => {
+        flash.classList.remove("active");
+        caption.textContent = c[2];
+        leftRig.classList.add("pushing");
+        rightRig.classList.add("pushing");
+      }, t3);
+
+      setTimeout(() => {
+        caption.textContent = "Key idea: the push pair is the same size, in opposite directions, on both sides.";
+      }, t4);
+    }
+
+    function playRollingObjectScene(label) {
+      const block = document.getElementById("rollBlock");
+      const caption = document.getElementById("sceneCaption");
+      if (!block) return;
+      const dur = state.reducedMotion ? 0 : 900;
+      block.style.transition = `transform ${dur}ms ease`;
+      const l = label.toLowerCase();
+
+      if (l.includes("no kick") || l.includes("no push") || l.includes("zero force")) {
+        block.style.transform = "translateX(0px)";
+        caption.textContent = "Nothing happens — no push, no motion. That's inertia at rest.";
+      } else if (l.includes("no friction")) {
+        block.style.transform = "translateX(230px)";
+        caption.textContent = "With no friction acting on it, it keeps going and going.";
+      } else if (l.includes("friction") && !l.includes("no friction")) {
+        block.style.transform = "translateX(120px)";
+        caption.textContent = "Friction is the net force here — it slows the object until it stops.";
+      } else if (l.includes("graph") || l.includes("show")) {
+        caption.textContent = "Velocity stays flat over time whenever net force is zero — that's constant motion.";
+      } else if (l.includes("big") || l.includes("strong") || l.includes("high")) {
+        block.style.transform = "translateX(230px)";
+        caption.textContent = "A bigger push still just gets it moving — once rolling, it keeps rolling on its own.";
+      } else {
+        block.style.transform = "translateX(70px)";
+        caption.textContent = "A gentle push starts it moving; it keeps going until something stops it.";
+      }
+    }
+
+    function playPushStrengthScene(label) {
+      const block = document.getElementById("pushBlock");
+      const caption = document.getElementById("sceneCaption");
+      const readout = document.getElementById("pushReadout");
+      if (!block) return;
+      const l = label.toLowerCase();
+      let distance = 90, duration = 700, text = "";
+
+      if (l.includes("small") || l.includes("soft")) {
+        distance = 55; duration = 950; text = "Small push: slow speed-up (small acceleration).";
+      } else if (l.includes("medium")) {
+        distance = 130; duration = 650; text = "Medium push: medium speed-up.";
+      } else if ((l.includes("big") || l.includes("strong")) || (l.includes("increase") && l.includes("force"))) {
+        distance = 220; duration = 380; text = "Bigger force, bigger acceleration — same mass.";
+      } else if (l.includes("mass")) {
+        distance = 45; duration = 1150; text = "More mass means it's harder to speed up — same push, less acceleration.";
+      } else if (l.includes("reset")) {
+        distance = 0; duration = 1; text = "Reset to the starting point.";
+      } else if (l.includes("show") || l.includes("graph") || l.includes("what changed")) {
+        text = "a = F / m — bigger force or smaller mass both mean bigger acceleration.";
+        if (readout) readout.textContent = "a = F / m";
+        caption.textContent = text;
+        return;
+      }
+
+      const dur = state.reducedMotion ? 0 : duration;
+      block.style.transition = `transform ${dur}ms ease`;
+      block.style.transform = `translateX(${distance}px)`;
+      caption.textContent = text;
+      if (readout) readout.textContent = "a = F / m";
+    }
+
+    function bindSceneControls(record) {
+      if (record.sandbox.scene_ref === "force_pair_rig_scene") {
+        playForcePairScene(record.sandbox.caption_sequence);
+      }
+      root.querySelectorAll("[data-scene-action]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const label = btn.getAttribute("data-scene-action");
+          addXP(20);
+          if (record.sandbox.scene_ref === "force_pair_rig_scene") {
+            playForcePairScene(record.sandbox.caption_sequence);
+          } else if (record.sandbox.scene_ref === "rolling_object_scene") {
+            playRollingObjectScene(label);
+          } else if (record.sandbox.scene_ref === "push_strength_scene") {
+            playPushStrengthScene(label);
+          }
+        });
+      });
+    }
+
+    async function renderLesson() {
+      const requestedConcept = state.subjectContext.concept;
+
+      // Paint an immediate loading state — the network call below is no
+      // longer instant like the old array lookup was, so the screen must
+      // never sit frozen while we wait.
+      root.innerHTML = mainCard({
+        kicker: "Contacting the Teaching Agent",
+        title: "Building your lesson…",
+        text: "Fetching this lesson from the backend — one moment.",
+        reward: "",
+        optionsHtml: ""
+      });
+
+      const { record, content_source, error } = await fetchLessonRecord(state.subjectContext);
+
+      // If the student mashed a button while we were waiting and moved to
+      // a different screen (or a different concept), don't paint a stale
+      // response over whatever should be showing now.
+      if (state.screen !== "lesson" || state.subjectContext.concept !== requestedConcept) return;
+
+      if (!record) {
+        root.innerHTML = mainCard({
+          kicker: "Content not ready",
+          title: "This lesson isn't ready yet",
+          text: error || "Want to explore a different zone instead?",
+          reward: "",
+          optionsHtml: [button("Back to Quest Map 🗺️")].join("")
+        });
+        bindOptions({ "Back to Quest Map 🗺️": () => setScreen("quest") });
+        return;
+      }
+
+      state.currentRecord = record;
+      state.contentSource = content_source;
+      state.recordCache[record.concept] = record;
+      const gradeKey = record.gradeBand;
+      const conceptText = record.concept_screen.text_by_grade[gradeKey]
+        || Object.values(record.concept_screen.text_by_grade)[0];
+
+      root.innerHTML = `
+        <div class="copy">
+          <div class="kicker">${record.hook.kicker}</div>
+          <h2>${LAW_LABELS[record.concept]}</h2>
+          <p>${record.hook.text}</p>
+
+          <div class="sandbox">
+            <div class="sim-card">
+              ${sceneShell(record)}
+            </div>
+
+            <div class="sim-card">
+              <h3>What to notice</h3>
+              <p id="formalText">${conceptText}</p>
+              <div class="tag-list" style="margin-top:12px">
+                <span class="tag">1. Set up the scene</span>
+                <span class="tag">2. Try the interaction</span>
+                <span class="tag">3. Watch what changes</span>
+                <span class="tag">4. Connect it to the rule</span>
+              </div>
+              <p class="sr-only" data-image-prompt="${escapeAttr(record.image_prompt || "")}">${record.image_alt || ""}</p>
+              <div class="option-grid" style="margin-top:18px">
+                <button class="option" data-action="I noticed it ✅">I noticed it ✅</button>
+                <button class="option" data-action="Give me a hint 💡">Give me a hint 💡</button>
+                <button class="option" data-action="Mini-game ⚡">Mini-game ⚡</button>
+                <button class="option" data-action="Take a break 🥔">Take a break 🥔</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="reward">+150 XP · ${titleCase(record.theme)} Lab Active</div>
+        </div>
+      `;
+
+      bindSceneControls(record);
+
+      bindOptions({
+        "I noticed it ✅": () => {
+          addXP(100);
+          setScreen("check");
+        },
+        "Give me a hint 💡": () => {
+          addXP(25);
+          const el = document.getElementById("formalText");
+          if (el) el.textContent = "Hint: " + conceptText;
+        },
+        "Mini-game ⚡": () => {
+          if (state.gamePositive || state.interest === "gaming") {
+            addXP(50);
+            renderMiniGame();
+          } else {
+            openBreak("Mini-games are optional. We can keep the lesson calm and visual.");
+          }
+        },
+        "Take a break 🥔": () => {
+          openBreak();
+        }
+      });
+
+      // The outer render() already ran updateSidebars() synchronously,
+      // before this await resolved -- run it again now so the sidebar
+      // reflects content_source and the newly-set currentRecord.
+      updateSidebars();
+    }
+
+    function renderMiniGame() {
+      root.innerHTML = `
+        <div class="copy">
+          <div class="kicker">Optional mini-game</div>
+          <h2>Speed boost detected</h2>
+          <p>Press the red button when it appears. This is just for fun, not a test.</p>
+          <button class="mini-game-red" id="redBtn">🔴 PRESS</button>
+          <div class="option-grid">
+            <button class="option" data-action="Back to lesson 🎯">Back to lesson 🎯</button>
+            <button class="option" data-action="Skip ⏭️">Skip ⏭️</button>
+          </div>
+          <div class="reward">+50 XP · Reflex Quest Started</div>
+        </div>
+      `;
+      const red = document.getElementById("redBtn");
+      red.addEventListener("click", () => {
+        addXP(80);
+        state.signals.gameEngagementPreference = "mini_game_positive";
+        red.textContent = "⚡ NICE!";
+        setTimeout(() => setScreen("check"), 600);
+      });
+      bindOptions({
+        "Back to lesson 🎯": () => setScreen("lesson"),
+        "Skip ⏭️": () => setScreen("check")
+      });
+    }
+
+    // ---------------------------------------------------------------------
+    // Diagnostic check — Assessment-shaped, sourced from the record itself
+    // ---------------------------------------------------------------------
+
+    function renderCheck() {
+      // The record was already fetched once in renderLesson() and stashed
+      // here -- no second network call needed just to show the diagnostic,
+      // since it's part of the same LessonScreen payload.
+      const record = state.currentRecord;
+      if (!record) { setScreen("quest"); return; }
+
+      const gradeKey = record.gradeBand;
+      const prompt = record.diagnostic.prompt_by_grade[gradeKey]
+        || Object.values(record.diagnostic.prompt_by_grade)[0];
+
+      root.innerHTML = mainCard({
+        kicker: record.diagnostic.kicker,
+        title: "One tiny check",
+        text: prompt,
+        reward: "+100 XP · Checkpoint Open",
+        optionsHtml: record.diagnostic.options.map(o => button(o.label)).join("")
+      });
+
+      const map = {};
+      record.diagnostic.options.forEach(opt => {
+        map[opt.label] = () => {
+          if (opt.correct) {
+            addXP(180);
+            state.mistakeGenome.push({ checkpoint: record.concept, result: "understood" });
+            advanceAfterCorrect();
+          } else {
+            addXP(40);
+            const g = record.mistake_genome[opt.misconception];
+            state.mistakeGenome.push({
+              checkpoint: record.concept,
+              likelyMisconception: opt.misconception,
+              recommendedSupport: g ? g.recommended_support : [],
+              confidence: 0.7
+            });
+            renderMistake(g ? g.message : "Let's take another look at that step.");
+          }
+        };
+      });
+      bindOptions(map);
+    }
+
+    function advanceAfterCorrect() {
+      state.questProgress.lawIndex += 1;
+      if (state.questProgress.lawIndex >= LAW_SEQUENCE.length) {
+        setScreen("checkpoint");
+      } else {
+        state.subjectContext.concept = LAW_SEQUENCE[state.questProgress.lawIndex];
+        setScreen("quest");
+      }
+    }
+
+    function renderMistake(message) {
+      root.innerHTML = mainCard({
+        kicker: "Mistake genome trace",
+        title: "Strategy patch unlocked",
+        text: message,
+        reward: "+75 XP · Mistake Became Data",
+        optionsHtml: [
+          button("Show picture 🎨"),
+          button("Tiny hint 💡"),
+          button("Try easier one 🪜"),
+          button("Try again 🎯")
+        ].join("")
+      });
+
+      bindOptions({
+        "Show picture 🎨": () => {
+          addXP(50);
+          setScreen("lesson");
+        },
+        "Tiny hint 💡": () => {
+          addXP(30);
+          renderMistake("Tiny hint: " + message);
+        },
+        "Try easier one 🪜": () => {
+          addXP(50);
+          renderMistake("Easier version — focus on just one part at a time. " + message);
+        },
+        "Try again 🎯": () => {
+          addXP(70);
+          setScreen("check");
+        }
+      });
+    }
+
+    // ---------------------------------------------------------------------
+    // Checkpoint — Assessment Agent stand-in, standalone quiz after 3 laws
+    // ---------------------------------------------------------------------
+
+    function renderCheckpoint() {
+      // No LESSON_LIBRARY array to filter anymore -- reuse the records
+      // already fetched from the backend during this session (renderLesson
+      // caches each one into state.recordCache as the student clears it).
+      // This avoids 2 extra network calls for a recap the student has
+      // already seen once this session.
+      const recap = LAW_SEQUENCE
+        .slice(0, 2)
+        .map(concept => state.recordCache[concept])
+        .filter(Boolean);
+      const items = recap.map(r => ({
+        prompt: r.diagnostic.prompt_by_grade[r.gradeBand] || Object.values(r.diagnostic.prompt_by_grade)[0],
+        options: r.diagnostic.options
+      }));
+
+      const item = items[state.checkpointIndex];
+
+      if (!item) {
+        root.innerHTML = mainCard({
+          kicker: "Boss fight complete",
+          title: "Checkpoint cleared",
+          text: "All three laws, three different stories, same physics underneath. Nice work.",
+          reward: "+300 XP · Newton's Laws Checkpoint Complete",
+          optionsHtml: [button("Continue ➡️")].join("")
+        });
+        bindOptions({
+          "Continue ➡️": () => {
+            state.checkpointIndex = 0;
+            setScreen("validate");
+          }
+        });
+        return;
+      }
+
+      root.innerHTML = mainCard({
+        kicker: `Standalone checkpoint · Q${state.checkpointIndex + 1} of ${items.length}`,
+        title: "Quick recap",
+        text: item.prompt,
+        reward: "+90 XP · Recap Question",
+        optionsHtml: item.options.map(o => button(o.label)).join("")
+      });
+
+      const map = {};
+      item.options.forEach(o => {
+        map[o.label] = () => {
+          addXP(o.correct ? 150 : 40);
+          state.checkpointIndex += 1;
+          render();
+        };
+      });
+      bindOptions(map);
+    }
+
+    // ---------------------------------------------------------------------
+    // Validation, patching, teacher dashboard
+    // ---------------------------------------------------------------------
+
+    function renderValidate() {
+      root.innerHTML = mainCard({
+        kicker: "Student-owned assessment",
+        title: "Learning avatar ready",
+        text: `Your current recipe looks like ${state.preferredBlend.join(" + ") || "visual + steps"}, with ${state.energy} energy and ${titleCase(state.subjectContext.theme)} as a power source. Does this feel right?`,
+        reward: "+500 XP · Avatar Ready for Review",
+        optionsHtml: [
+          button("Yep, that sounds like me ✅"),
+          button("Change one thing ✏️"),
+          button("Try again 🔄"),
+          button("Add something 🧩")
+        ].join("")
+      });
+
+      bindOptions({
+        "Yep, that sounds like me ✅": () => {
+          addXP(500);
+          state.profileConfidence = 0.85;
+          setScreen("dashboard");
+        },
+        "Change one thing ✏️": () => renderPatchMenu(),
+        "Try again 🔄": () => setScreen("energy"),
+        "Add something 🧩": () => renderPatchMenu()
+      });
+    }
+
+    function renderPatchMenu() {
+      root.innerHTML = mainCard({
+        kicker: "Avatar patch mode",
+        title: "Good catch",
+        text: "What should we patch first?",
+        reward: "+150 XP · Profile Editing Open",
+        optionsHtml: [
+          button("Learning recipe 🎨"),
+          button("Hardest subject 🧱"),
+          button("Motivation ⚡"),
+          button("Break settings 🥔")
+        ].join("")
+      });
+
+      bindOptions({
+        "Learning recipe 🎨": () => setScreen("recipe"),
+        "Hardest subject 🧱": () => setScreen("quest"),
+        "Motivation ⚡": () => setScreen("interest"),
+        "Break settings 🥔": () => openBreak()
+      });
+    }
+
+    function renderDashboard() {
+      const snapshot = {
+        preferred_blend: state.preferredBlend,
+        motivation_drivers: state.signals.motivationDrivers,
+        current_energy: state.energy,
+        age_band: state.ageBand,
+        subject_context: state.subjectContext,
+        content_source: state.contentSource,
+        confidence_signal: state.energy.includes("low") ? "needs_easy_warmup" : "normal",
+        recommended_next_move: state.lowDensity ? "visual_card_then_guided_practice" : "sandbox_then_diagnostic_check",
+        mistake_patterns: state.mistakeGenome,
+        profile_confidence: Number(state.profileConfidence.toFixed(2))
+      };
+
+      root.innerHTML = `
+        <div class="copy">
+          <div class="kicker">Teacher demo dashboard</div>
+          <h2>Professional insight preview</h2>
+          <p>Student-facing labels stay positive. Teacher-facing summaries use cautious, evidence-based recommendations.</p>
+          <div class="dashboard-grid">
+            <div class="metric"><span>Preferred blend</span><strong>${state.preferredBlend.join(" + ") || "Needs more data"}</strong></div>
+            <div class="metric"><span>Energy</span><strong>${titleCase(state.energy)}</strong></div>
+            <div class="metric"><span>Theme / Grade</span><strong>${titleCase(state.subjectContext.theme)} · ${titleCase(state.subjectContext.gradeBand)}</strong></div>
+            <div class="metric"><span>Recommended move</span><strong>${snapshot.recommended_next_move.replaceAll("_", " ")}</strong></div>
+            <div class="metric"><span>Profile confidence</span><strong>${snapshot.profile_confidence}</strong></div>
+            <div class="metric"><span>Content source</span><strong>${titleCase(state.contentSource)}</strong></div>
+            <div class="metric"><span>Game preference</span><strong>${titleCase(state.signals.gameEngagementPreference)}</strong></div>
+            <div class="metric"><span>Mistake traces</span><strong>${state.mistakeGenome.length}</strong></div>
+            <div class="metric"><span>Laws cleared</span><strong>${Math.min(state.questProgress.lawIndex, 3)} / 3</strong></div>
+          </div>
+          <pre class="json-panel" style="margin-top:18px">${JSON.stringify(snapshot, null, 2)}</pre>
+          <div class="option-grid">
+            <button class="option" data-action="Restart Demo">Restart Demo</button>
+            <button class="option" data-action="Back to Quest Map">Back to Quest Map</button>
+          </div>
+          <div class="reward">Demo Complete · Modular Root/Teaching/Assessment Flow Shown</div>
+        </div>
+      `;
+
+      bindOptions({
+        "Restart Demo": () => restart(),
+        "Back to Quest Map": () => setScreen("quest")
+      });
+    }
+
+    // ---------------------------------------------------------------------
+    // Break / recovery, safety valves (unchanged from v3)
+    // ---------------------------------------------------------------------
+
+    function openBreak(message = "") {
+      breakOverlay.classList.add("active");
+      timerDisplay.textContent = "Ready?";
+      if (message) {
+        breakOverlay.querySelector("p").textContent = message;
+      } else {
+        breakOverlay.querySelector("p").textContent = "Good call. Breaks are part of the strategy, not a failure state.";
+      }
+      state.signals.fatigueAndBreakNeeds = "break_requested";
+      updateSidebars();
+    }
+
+    let timerInterval = null;
+    function startBreak(seconds) {
+      clearInterval(timerInterval);
+      if (seconds === 0) {
+        breakOverlay.classList.remove("active");
+        addXP(100);
+        renderAfterBreak();
+        return;
+      }
+
+      let remaining = seconds;
+      timerDisplay.textContent = formatTime(remaining);
+      timerInterval = setInterval(() => {
+        remaining -= 1;
+        timerDisplay.textContent = formatTime(remaining);
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          breakOverlay.classList.remove("active");
+          addXP(100);
+          renderAfterBreak();
+        }
+      }, 1000);
+    }
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = String(seconds % 60).padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function renderAfterBreak() {
+      root.innerHTML = mainCard({
+        kicker: "Recharge complete",
+        title: "Welcome back",
+        text: "Let’s restart with one tiny win instead of jumping into the hardest part.",
+        reward: "+100 XP · Recharge Complete",
+        optionsHtml: [
+          button("Easy warm-up 🙂"),
+          button("Hint first 💡"),
+          button("Try again 🎯"),
+          button("Switch mode 🔄")
+        ].join("")
+      });
+
+      bindOptions({
+        "Easy warm-up 🙂": () => setScreen("lesson"),
+        "Hint first 💡": () => renderMistake("Tiny hint: same-size push, opposite directions."),
+        "Try again 🎯": () => setScreen("check"),
+        "Switch mode 🔄": () => setScreen("recipe")
+      });
+    }
+
+    function renderSurprise() {
+      root.innerHTML = mainCard({
+        kicker: "Surprise mode",
+        title: "Mystery lab button",
+        text: "You find a mystery button in a science lab. What do you do?",
+        reward: "+100 XP · Chaos Mode Sample Collected",
+        optionsHtml: [
+          button("Press it instantly 🔴"),
+          button("Read the label first 📜"),
+          button("Ask someone 🧑‍🔬"),
+          button("Run away wisely 🏃")
+        ].join("")
+      });
+
+      bindOptions({
+        "Press it instantly 🔴": () => {
+          addXP(100);
+          state.signals.motivationDrivers.push("curiosity");
+          setScreen("quest");
+        },
+        "Read the label first 📜": () => {
+          addXP(100);
+          state.signals.processingPace = "careful";
+          setScreen("quest");
+        },
+        "Ask someone 🧑‍🔬": () => {
+          addXP(100);
+          state.signals.motivationDrivers.push("social_support");
+          setScreen("quest");
+        },
+        "Run away wisely 🏃": () => {
+          addXP(100);
+          state.signals.selfConfidence = "prefers_safe_path";
+          setScreen("quest");
+        }
+      });
+    }
+
+    function renderTooMuchReading() {
+      setLowDensity(true);
+      root.innerHTML = mainCard({
+        kicker: "Text minimized",
+        title: "Picture mode activated",
+        text: "One tap only.",
+        reward: "+100 XP · Reading Load Reduced",
+        optionsHtml: [
+          button("🎨 Pictures"),
+          button("🪜 Tiny steps"),
+          button("🔊 Audio"),
+          button("🥔 Break")
+        ].join("")
+      });
+
+      bindOptions({
+        "🎨 Pictures": () => setScreen("lesson"),
+        "🪜 Tiny steps": () => setScreen("lesson"),
+        "🔊 Audio": () => {
+          addXP(50);
+          renderMistake("Audio mode would read the lesson aloud and keep only the main choices on screen.");
+        },
+        "🥔 Break": () => openBreak()
+      });
+    }
+
+    function renderBored() {
+      root.innerHTML = mainCard({
+        kicker: "Boredom recovery",
+        title: "Plot twist accepted",
+        text: "If homework turned into a dragon, what weapon are you choosing?",
+        reward: "+100 XP · Topic Dodge Successful",
+        optionsHtml: [
+          button("Calculator Sword 🗡️"),
+          button("Snack Shield 🍕"),
+          button("Teleport Button 🌀"),
+          button("Ask-a-Friend Spell 🤝")
+        ].join("")
+      });
+
+      bindOptions({
+        "Calculator Sword 🗡️": () => {
+          addXP(100);
+          state.signals.motivationDrivers.push("tools");
+          setScreen("quest");
+        },
+        "Snack Shield 🍕": () => {
+          addXP(100);
+          openBreak("Snack-shield logic accepted. Want a short recharge?");
+        },
+        "Teleport Button 🌀": () => {
+          addXP(100);
+          setScreen("quest");
+        },
+        "Ask-a-Friend Spell 🤝": () => {
+          addXP(100);
+          state.signals.motivationDrivers.push("social_support");
+          setScreen("quest");
+        }
+      });
+    }
+
+    // ---------------------------------------------------------------------
+    // Sidebars, render dispatch, restart, global listeners
+    // ---------------------------------------------------------------------
+
+    function updateSidebars() {
+      const tags = [
+        ["Energy", titleCase(state.energy)],
+        ["Age Mode", titleCase(state.ageBand)],
+        ["Theme", titleCase(state.subjectContext.theme)],
+        ["Grade Key", titleCase(state.subjectContext.gradeBand)],
+        ["Blend", state.preferredBlend.length ? state.preferredBlend.join(" + ") : "Unknown"],
+        ["XP", state.xp],
+        ["Laws Cleared", `${Math.min(state.questProgress.lawIndex, 3)}/3`],
+        ["Density", state.lowDensity ? "Low text" : "Normal"],
+        ["Profile", state.profileConfidence.toFixed(2)]
+      ];
+
+      profileTags.innerHTML = tags.map(([k, v]) => `<span class="tag">${k}: ${v}</span>`).join("");
+
+      const preview = {
+        student_profile: {
+          energy: state.energy,
+          age_band: state.ageBand,
+          preferred_blend: state.preferredBlend,
+          learning_style_mix: state.learningStyleMix,
+          subject_context: state.subjectContext,
+          profile_confidence: Number(state.profileConfidence.toFixed(2))
+        },
+        internal_learner_signals: state.signals,
+        mistake_genome: state.mistakeGenome
+      };
+
+      stateJson.textContent = JSON.stringify(preview, null, 2);
+
+      const idx = Math.max(0, screens.indexOf(state.screen));
+      progressFill.style.width = `${Math.min(100, ((idx + 1) / screens.length) * 100)}%`;
+      screenName.textContent = titleCase(state.screen);
+      modeLabel.textContent = `${state.lowDensity ? "Low Text" : "Adaptive"} · ${titleCase(state.ageBand)}`;
+    }
+
+    function render() {
+      updateSidebars();
+
+      const renderers = {
+        energy: renderEnergy,
+        grade: renderGrade,
+        interest: renderInterest,
+        recipe: renderRecipe,
+        quest: renderQuest,
+        lesson: renderLesson,
+        check: renderCheck,
+        checkpoint: renderCheckpoint,
+        validate: renderValidate,
+        dashboard: renderDashboard
+      };
+
+      renderers[state.screen]?.();
+      updateSidebars();
+    }
+
+    async function restart() {
+      clearInterval(timerInterval);
+      Object.assign(state, {
+        screen: "energy",
+        xp: 0,
+        lowDensity: false,
+        ageBand: "unknown",
+        energy: "unknown",
+        interest: "unknown",
+        learningStyleMix: {},
+        preferredBlend: [],
+        fatigue: "unknown",
+        gamePositive: false,
+        profileConfidence: 0.1,
+        mistakeGenome: [],
+        subjectContext: {
+          subject: "physics",
+          topic: "newtons_laws_of_motion",
+          concept: "law_1_inertia",
+          gradeBand: "unknown",
+          theme: "unknown"
+        },
+        questProgress: { lawIndex: 0 },
+        contentSource: null,
+        currentRecord: null,
+        checkpointIndex: 0,
+        recordCache: {},
+        signals: {
+          attentionSpan: "unknown",
+          confusionSensitivity: "unknown",
+          revisionNeed: "unknown",
+          timeManagement: "unknown",
+          selfConfidence: "unknown",
+          processingPace: "unknown",
+          motivationDrivers: [],
+          chitchatTendency: "unknown",
+          distractionRisk: "unknown",
+          fatigueAndBreakNeeds: "unknown",
+          gameEngagementPreference: "unknown"
+        }
+      });
+      document.body.classList.remove("low-density");
+      breakOverlay.classList.remove("active");
+      // The old session's XP/mistake history lives server-side now, keyed
+      // by session_id -- start a fresh session rather than reusing the old
+      // one, so a restart is actually a clean slate on the backend too.
+      await bootstrapSession();
+      render();
+    }
+
+    document.querySelectorAll("[data-valve]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const valve = btn.getAttribute("data-valve");
+        if (valve === "bored") renderBored();
+        if (valve === "reading") renderTooMuchReading();
+        if (valve === "surprise") renderSurprise();
+        if (valve === "break") openBreak();
+      });
+    });
+
+    document.querySelectorAll("[data-break]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        startBreak(Number(btn.getAttribute("data-break")));
+      });
+    });
+
+    document.getElementById("restartBtn").addEventListener("click", restart);
+    document.getElementById("teacherBtn").addEventListener("click", () => setScreen("dashboard"));
+    document.getElementById("motionBtn").addEventListener("click", () => {
+      state.reducedMotion = !state.reducedMotion;
+      document.body.classList.toggle("reduced-motion", state.reducedMotion);
+      document.getElementById("motionBtn").textContent = state.reducedMotion ? "Enable Motion" : "Reduce Motion";
+    });
+
+    breakOverlay.addEventListener("click", e => {
+      if (e.target === breakOverlay) breakOverlay.classList.remove("active");
+    });
+
+    // Session must exist on the backend before any screen that might fetch
+    // a lesson can run, so the whole app now boots through this instead of
+    // a bare render() call.
+    async function init() {
+      try {
+        await bootstrapSession();
+      } catch (e) {
+        root.innerHTML = `<div class="copy"><div class="kicker">Backend unreachable</div>
+          <h2>Can't start a session</h2>
+          <p>${e.message}. Is the FastAPI server running? See the README for
+          "uv run learning-avatar-serve".</p></div>`;
+        return;
+      }
+      render();
+    }
+    init();
+  </script>
+</body>
+</html>
