@@ -198,10 +198,7 @@ uv run mcp dev src/learning_avatar/mcp/server.py
    "generated"` and a real model call, guarded by the same schema
    validation the mock path exercises in tests.
 
-## What's deliberately left unfinished
-
-These are marked with `TODO`/`NotImplementedError` in the code — they're
-the natural next exercises, not oversights:
+These are marked with `TODO`/`NotImplementedError` in the code 
 
 - `assessment_agent._generate_via_llm` — parse + validate an LLM-generated
   quiz, mirroring `teaching_agent.py`'s pattern exactly.
@@ -217,15 +214,3 @@ the natural next exercises, not oversights:
 - DSPy signatures, GRPO/RLVR fine-tuning, and a broader MCP server
   (retrieval/classification/calendar) are out of scope for this scaffold on
   purpose — this piece is just the orchestration skeleton those build on top
-  of.
-
-## A note on what I could and couldn't verify
-
-This sandbox has no network access, so I could not `pip install`/`uv sync`
-and actually run the server or `pytest` end to end. What I did verify:
-every `.py` file compiles (`python -m py_compile`), every cross-module
-import resolves to a name that's actually defined where it's imported
-from, the JSON content files parse, and the frontend's JavaScript parses
-cleanly with the embedded library removed. Run `uv run pytest -v` yourself
-before trusting this in front of anyone — that's the one thing I couldn't
-close the loop on.
