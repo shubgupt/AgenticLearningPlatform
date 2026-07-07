@@ -1,4 +1,4 @@
-# Learning Avatar — Agentic Backend
+# Learning Avatar 
 
 A runnable starting point for the "architect an end-to-end agentic
 application" exercise: three hand-rolled agents (no LangChain/CrewAI/etc.),

@@ -19,8 +19,11 @@ learning_avatar/.env
 sessions.db
 learning_avatar/sessions.db
 
-# Editor backups
+# Editor backups / swap files
 *.bak
+*.swp
+*.swo
+*~
 
 # Large local-only archive -- a backup zip of learning_avatar/, redundant
 # with the tracked source and too big to belong in git history
