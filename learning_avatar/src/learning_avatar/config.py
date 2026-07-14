@@ -53,6 +53,13 @@ class Settings:
     assessment_agent_model: str = os.getenv(
         "ASSESSMENT_AGENT_MODEL", _yaml_get("llm", "assessment_agent_model", default="gpt-4o-mini")
     )
+    # Phase 2's LabModel-Worker (labmodel/worker.py) used to borrow
+    # teaching_agent_model above -- a naming leak, since it's a different
+    # agent with no reason to share Teaching Agent's model choice just
+    # because they both currently default to the same value. Own setting:
+    worker_model: str = os.getenv(
+        "WORKER_MODEL", _yaml_get("llm", "worker_model", default="gpt-4o-mini")
+    )
 
     host: str = _yaml_get("server", "host", default="127.0.0.1")
     port: int = int(_yaml_get("server", "port", default=8000))

@@ -84,6 +84,10 @@ class AssessmentResponse(BaseModel):
 # --- Session / Root Agent state ---------------------------------------------
 
 class Profile(BaseModel):
+    """Qualitative profile read by the Phase 1 lesson pipeline
+    (root_agent.py / teaching_agent.py). See StudentProfile below for the
+    unrelated, more detailed numeric profile Phase 2 added -- SessionState
+    carries both, with no conversion between them yet."""
     ageBand: str = "unknown"
     energy: str = "unknown"
     interest: str = "unknown"
@@ -135,6 +139,14 @@ class CreateSessionRequest(BaseModel):
     profile: Optional[StudentProfile] = None
 
 
+# NOTE -- known duplication, not yet resolved: these fields are redeclared
+# almost verbatim in orchestrator/graph.py's HintGraphState (a TypedDict,
+# since LangGraph's StateGraph needs that shape rather than a Pydantic
+# model). There is currently no single source of truth for "what a hint
+# request/response looks like" -- if you add/rename a field here, go check
+# HintGraphState too, and vice versa. Worth collapsing into one shared
+# definition (e.g. deriving the TypedDict from this model, or vice versa)
+# before this drifts further.
 class HintRequest(BaseModel):
     task_number: int
     task_question: str

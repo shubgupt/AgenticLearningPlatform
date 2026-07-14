@@ -1,55 +1,40 @@
 # Architecture
 
-## Demo architecture map
+## Current implementation architecture
 
 ```mermaid
-flowchart TB
-    subgraph UI[Demo UI]
-        B[Student Browser<br/>HTML + JavaScript]
-    end
+flowchart LR
+    U[Student Browser<br/>frontend + browser JS] --> API[FastAPI App<br/>web/main.py]
+    API --> S[(SQLite session store<br/>core/state_store.py)]
+    API --> R[Root Agent<br/>agents/root_agent.py]
 
-    subgraph BE[Backend service]
-        F[FastAPI App<br/>web/main.py]
-        R[Root Agent<br/>orchestrator]
-        T[Teaching Agent]
-        A[Assessment Agent]
-        S[(Session State<br/>SQLite)]
-        SC[Shared Schemas<br/>Pydantic]
-    end
+    R --> T[Teaching Agent<br/>agents/teaching_agent.py]
+    R --> A[Assessment Agent<br/>agents/assessment_agent.py]
 
-    subgraph CONTENT[Content layer]
-        MC[MCP Client]
-        MS[MCP Content Server]
-        CL[Content Library]
-        J[(Lesson JSON files)]
-    end
+    R --> H[Hint Graph<br/>orchestrator/graph.py]
+    H --> H1[router]
+    H --> H2[policy]
+    H --> H3[worker]
+    H --> H4[critic]
 
-    subgraph GEN[Optional generation]
-        LLM[LLM Client]
-        API[OpenAI API / Mock LLM]
-    end
+    T --> MC[MCP Client<br/>mcp/client.py]
+    MC --> MS[MCP Content Server<br/>mcp/server.py]
+    MS --> CL[Content Library<br/>core/content_library.py]
+    CL --> J[(Lesson & concept JSON<br/>content/)]
 
-    B --> F
-    F --> R
-    R --> T
-    R --> A
-    R --> S
+    T --> LLM[LLM Client<br/>llm_client.py]
+    H3 --> LLM
+    LLM --> O[OpenAI API / Mock LLM]
 
-    T --> MC
-    MC --> MS
-    MS --> CL
-    CL --> J
-
-    T --> LLM
-    LLM --> API
-
-    F --> SC
-    R --> SC
+    R --> SC[Shared Schemas<br/>core/schemas.py]
     T --> SC
     A --> SC
+    API --> SC
+
+    H --> Q[Qdrant client stub<br/>storage/qdrant_client.py]
 ```
 
-This view highlights the demo path: the browser calls the FastAPI app, the root agent orchestrates teaching and assessment, and the teaching agent prefers a local content server before falling back to a model.
+This view captures the current implementation shape: the browser talks to FastAPI, the root agent coordinates teaching and assessment, the teaching agent prefers MCP-backed content before falling back to the LLM client, and the hint path runs through a small LangGraph orchestrator.
 
 ```
 Browser (adaptive_learning_avatar_demo_v4.html)

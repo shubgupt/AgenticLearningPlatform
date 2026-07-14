@@ -22,7 +22,16 @@ def run_critic_check(lesson: LessonResponse) -> list[str]:
     """A first, intentionally small pass at system_prompt.md's 12-point
     critic checklist. Returns a list of problems found (empty = pass).
     Extend this as you add more checks -- each one should be a single,
-    named, testable reason a screen could be rejected."""
+    named, testable reason a screen could be rejected.
+
+    NOTE -- parallel implementation: labmodel/critic.py's review_hint()
+    does the same job (list-of-problems, empty=pass) for the Phase 2 hint
+    slice, independently, with zero shared code. Both are also narrower
+    than the plan doc's Critic spec, which describes a scored 0-100%
+    evaluation against curriculum/hallucination/pedagogy criteria -- neither
+    implementation does that; both are binary rule checks. Worth deciding
+    whether these converge into one Critic abstraction (with domain-specific
+    rule sets plugged in) before a third one gets written from scratch."""
     problems: list[str] = []
     record = lesson.record
 

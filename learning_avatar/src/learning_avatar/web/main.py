@@ -116,7 +116,7 @@ async def hint(session_id: str, req: HintRequest, llm: LLMClient = Depends(get_l
     try:
         result = await run_hint_orchestrator(
             llm=llm,
-            model=settings.teaching_agent_model,
+            model=settings.worker_model,
             task_number=req.task_number,
             task_question=req.task_question,
             grade_band=req.grade_band,
@@ -163,10 +163,14 @@ async def health():
 
 
 # --- Serve the frontend from this same FastAPI process -------------------
-# `html=True` makes StaticFiles serve index.html for `/`. We don't have an
-# index.html -- adaptive_learning_avatar_demo_v4.html is served explicitly
-# below instead, and the mount only needs to exist for any future static
-# assets (images, a bundled TS build, etc.) placed in frontend/.
+# NOTE: frontend/index.html does exist (an earlier, unfinished "Newton's
+# Odyssey" canvas-map prototype) but is NOT routed anywhere -- it's dead,
+# orphaned code, not a home page. `/` explicitly serves
+# adaptive_learning_avatar_demo_v4.html below instead. We deliberately do
+# NOT pass `html=True` to StaticFiles here, specifically so index.html can't
+# silently become the default response for "/" or any other unmapped path.
+# If you want that prototype live, give it its own route the way
+# /forces-lab has one; if you don't, it's a candidate for deletion.
 if settings.frontend_dir.exists():
     app.mount("/static", StaticFiles(directory=str(settings.frontend_dir)), name="static")
 

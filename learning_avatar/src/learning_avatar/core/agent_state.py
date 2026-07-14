@@ -1,19 +1,21 @@
 """
-AgentState -- the LangGraph orchestrator's central state contract, per the
-plan doc's section 3.1. This is deliberately a *separate* model from
-SessionState (schemas.py), not a replacement for it:
+AgentState -- modeled on the plan doc's section 3.1 central state contract.
 
-- SessionState is what the existing FastAPI routes / SQLite store / Root
-  Agent already use for the working lesson pipeline (session.py, tests,
-  the v4 frontend). It stays untouched.
-- AgentState is the state object that flows through orchestrator/graph.py's
-  LangGraph nodes for the new "hint" vertical slice. It's scoped down from
-  the plan doc's full version to just the fields that slice actually reads
-  or writes -- the rest (score_xp, attempt_history, generated_slides, etc.)
-  are included as declared-but-currently-unused, matching the plan's shape,
-  so extending the graph later (assessment, full lesson generation via
-  LangGraph) doesn't require a schema migration, just wiring a node that
-  reads/writes a field that was already sitting here.
+CURRENTLY UNUSED. This was written as "the state object that flows through
+orchestrator/graph.py's LangGraph nodes," but graph.py actually defines and
+uses its own separate `HintGraphState` TypedDict instead (LangGraph's
+StateGraph needs a TypedDict/dataclass-like schema, and this is a Pydantic
+BaseModel). Nothing in this codebase imports AgentState. Keeping it around
+as a faithful, unused reference to the plan doc's shape was a mistake to
+present as "the" state contract without wiring it in -- either delete this
+file, or make it true by having graph.py convert to/from it at the
+orchestrator's boundary (HintGraphState stays the internal LangGraph
+representation, AgentState becomes the public in/out shape). Not resolved
+here; flagged so it doesn't get mistaken for live code.
+
+SessionState (schemas.py) is the model that's actually used everywhere --
+FastAPI routes, SQLite store, Root Agent, the v4 frontend, and the new
+/hint route via session.student_profile.
 
 Field-for-field mapped to the plan doc's `state.py` where possible; a few
 plan fields (trace_parent_id/OpenTelemetry, rl_reward_metric) are kept as

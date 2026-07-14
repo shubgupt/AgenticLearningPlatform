@@ -4,6 +4,7 @@ llm:
   mode: mock  # mock | live -- see src/learning_avatar/llm_client.py
   teaching_agent_model: gpt-4o-mini
   assessment_agent_model: gpt-4o-mini
+  worker_model: gpt-4o-mini  # Phase 2's LabModel-Worker (labmodel/worker.py) -- own setting, not borrowed
 
 server:
   host: 127.0.0.1

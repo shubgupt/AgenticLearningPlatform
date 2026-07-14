@@ -21,6 +21,16 @@ from langgraph.graph import END, START, StateGraph
 from learning_avatar.orchestrator import nodes
 
 
+# NOTE -- known duplication, not yet resolved: task_number/task_question/
+# grade_band/static_hint_fallback/hint_text/source are redeclared here and
+# in core/schemas.py's HintRequest/HintResponse (Pydantic). This was written
+# as a TypedDict for the widest LangGraph version compatibility -- some
+# LangGraph versions accept a Pydantic BaseModel directly as the state
+# schema, which would let this just import and reuse HintRequest/
+# HintResponse instead of redeclaring their fields, but that wasn't
+# confirmed against the actual installed version (see graph.py's top
+# docstring on verification status). Until unified, a field added/renamed
+# here needs the same change in core/schemas.py, and vice versa.
 class HintGraphState(TypedDict, total=False):
     task_number: int
     task_question: str

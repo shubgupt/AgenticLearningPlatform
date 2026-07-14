@@ -54,20 +54,33 @@ class MockLLMClient(LLMClient):
     """
 
     async def complete(self, system_prompt: str, user_message: str, model: str) -> str:
+        """Dispatches to one of two independent mock response shapes based
+        on what the caller sent, since teaching_agent.py and
+        labmodel/worker.py use this same interface for two structurally
+        different contracts (JSON LessonScreen vs. plain-text hint). This
+        used to be one method with an inline branch; split so each contract
+        has its own home and a third caller doesn't have to be shoehorned
+        into an `if/else` that's already doing double duty."""
+        payload = self._try_parse_lesson_request(user_message)
+        if payload is not None:
+            return self._mock_lesson_completion(payload)
+        return self._mock_generic_completion()
+
+    @staticmethod
+    def _try_parse_lesson_request(user_message: str) -> dict | None:
+        """teaching_agent.py always sends JSON with a `subjectContext` key.
+        Returns that dict if `user_message` matches that shape, else None."""
         try:
             payload = json.loads(user_message)
         except (json.JSONDecodeError, AttributeError):
-            payload = None
+            return None
+        if isinstance(payload, dict) and "subjectContext" in payload:
+            return payload
+        return None
 
-        if not isinstance(payload, dict) or "subjectContext" not in payload:
-            # Not a lesson-generation call (teaching_agent always sends JSON
-            # with a subjectContext key) -- this is some other, plain-text
-            # use of the LLMClient interface, e.g. labmodel/worker.py's hint
-            # generation. Return a short deterministic mock string instead
-            # of trying to force it into the LessonScreen shape below.
-            return ("[mock hint] Compare the two things being described directly -- "
-                    "which one is bigger, and what does that tell you about the direction of motion?")
-
+    @staticmethod
+    def _mock_lesson_completion(payload: dict) -> str:
+        """Fake but schema-valid LessonScreen JSON, for teaching_agent.py."""
         concept = payload.get("subjectContext", {}).get("concept", "unknown_concept")
         grade_band = payload.get("subjectContext", {}).get("gradeBand", "grade5")
         theme = payload.get("subjectContext", {}).get("theme", "soccer")
@@ -97,6 +110,15 @@ class MockLLMClient(LLMClient):
             "image_alt": None,
         }
         return json.dumps(fake_record)
+
+    @staticmethod
+    def _mock_generic_completion() -> str:
+        """Plain-text fallback for any non-lesson caller, e.g.
+        labmodel/worker.py's hint generation. Add a new `_mock_*` method
+        (and a new branch in `complete()`) rather than growing this one if
+        a third contract shows up."""
+        return ("[mock hint] Compare the two things being described directly -- "
+                "which one is bigger, and what does that tell you about the direction of motion?")
 
 
 def get_llm_client() -> LLMClient:
