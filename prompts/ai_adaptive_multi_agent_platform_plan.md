@@ -35,7 +35,7 @@ The platform rejects fixed linear execution chains in favor of an event-driven, 
 
 ### 2.1. Architectural Layer Specifications
 
-#### 1. LangGraph Orchestration Layer (Member 1)
+#### 1. LangGraph Orchestration Layer
 Acts as the central master decision-state engine. Implemented in native Python via LangGraph, it manages the transactional lifecycle, graph edge routing conditions, state mutations, error limits, and hidden processing loops. It serves as the primary **MCP Client**, determining exactly when tool invocation is permissible and enforcing strict security barriers.
 
 #### 2. Google ADK Specialization Layer
@@ -46,16 +46,16 @@ The project-owned internal abstraction protocol that bifurcates LLM operations i
 * **LabModel-Worker:** The "Actor" role responsible for generating lessons, progressive hint configurations, diagnostic assessments, remediation branches, textual deconstructions, and dynamic roadmap schedules. It operates with a high latency budget and is programmatically barred from streaming directly to the client layer.
 * **LabModel-Critic:** The "Reviewer" role tasked with evaluating Worker drafts independently. It grades outputs against rigid criteria parameters, covering curriculum alignment, retrieval grounding, cognitive load, hallucination risk, mathematical precision, and age-appropriateness constraints. It outputs structured JSON validation tokens and blocks any output that scores below a strict 80% evaluation mark.
 
-#### 4. Model Context Protocol (MCP) Boundary (Member 6)
+#### 4. Model Context Protocol (MCP) Boundary
 The standardized protocol layer powered by Python `FastMCP` that handles communications between internal cognitive agents and external system endpoints using JSON-RPC patterns over local stdio or Server-Sent Events (SSE). 
 
 * **Permitted MCP Domains:** Accessing local workspace configuration files, reading teacher-uploaded curriculum documentation, syncing student Learning Management System (LMS) rosters, lookups within localized assessment banks, executing text searches across semantic knowledge structures, routing browser voice dictation arrays, and pushing output fields to dedicated metrics export files.
 * **Banned MCP Domains:** MCP tools are strictly prohibited from performing internal graph state transitions, executing basic prompt formatting routines, evaluating interior Actor-Critic compliance scores, routing intent classifications, or updating core semantic and episodic student memory frames. MCP tools can never bypass the primary Policy Engine, safety checks, or final streaming clearance barriers.
 
-#### 5. Project VectorDB & Storage Layer (Member 6)
+#### 5. Project VectorDB & Storage Layer
 A unified, local multi-model storage instance running a localized disk-backed SQLite engine via SQLAlchemy ORM alongside a separate, disk-persistent Qdrant Vector Client collection node.
 
-#### 6. Renderer Client Layer (Member 3)
+#### 6. Renderer Client Layer
 The front-end UI visual consumption node (presentation_ui). Implemented using pixel-perfect vanilla JavaScript, CSS micro-animations, and responsive HTML frameworks, it captures user telemetry metrics (click speeds, input latency, window tab-focus losses) and pipes them over bi-directional sockets to the orchestrator while operating as a high-fidelity vector puppeteer.
 
 ---
@@ -168,10 +168,10 @@ work for a 6-person team already scoped tightly around one domain.
 
 ## 6. Perceptual Multi-Modal Subsystems
 
-### 6.1. Voice Audio Input/Output Sync Pipeline (Member 4)
+### 6.1. Voice Audio Input/Output Sync Pipeline
 Utilizes native Web Audio API wrappers to handle voice ingestion and speech playbacks. Transcribes vocal waveforms into text strings for the Router Agent, and prompt-tunes server text-to-speech rendering outputs to map matching cadences for specific persona types.
 
-### 6.2. Generative Vector Canvas Renderer (Member 3)
+### 6.2. Generative Vector Canvas Renderer
 The presentation client acts as an interactive vector art consumer. It parses incoming layout data coordinates (x, y, vector arrows) and paints them directly inside an inline HTML SVG viewport canvas using hardware-accelerated matrix transformations.
 
 ---
@@ -256,14 +256,14 @@ current timeline.
 
 To satisfy the core academic criteria of the Capstone project, the system implements two advanced optimization workflows: programmatic few-shot prompt compilation (DSPy) and parameter-level alignment optimization (GRPO & RLVR).
 
-### 8.1. DSPy Prompt Compilation Workflow (Members 2 & 5)
+### 8.1. DSPy Prompt Compilation Workflow
 Manual prompt engineering in the `teaching_agent` and `evaluator_agent` is entirely replaced with declarative **DSPy Signatures** and **Modules**.
 * **Prompt Signatures:** Defined as class boundaries capturing inputs, reasoning paths, and target output schemas.
 * **The Compilation Loop:** In Week 3, Member 2 and Member 5 compile these signatures using `dspy.teleprompt.BootstrapFewShot` or `MIPROv2`.
 * **Dataset & Validation:** The optimization runs against a localized validation corpus of 50 student query-response pairs.
 * **Measurement:** The project will measure and report the exact performance delta (win rate/accuracy) comparing the compiled DSPy output against handwritten baseline prompts.
 
-### 8.2. GRPO & RLVR Post-Training Pipeline (Member 5)
+### 8.2. GRPO & RLVR Post-Training Pipeline
 The grading and feedback engine is optimized by fine-tuning a narrow, localized model (**Qwen-2.5-7B-Instruct** or **Llama-3-8B-Instruct**) using **Group-Relative Policy Optimization (GRPO)** paired with **Reward Learning with Verification and Reasoning (RLVR)**.
 
 #### 1. Verifiable Reward Function ($R$)
