@@ -91,10 +91,33 @@ class Profile(BaseModel):
     profileConfidence: float = 0.1
 
 
+# --- Phase 2: multi-agent evolution (orchestrator/labmodel/forces_lab) ------
+#
+# StudentProfile is the richer telemetry captured by
+# frontend/forces_lab.html's onboarding modal (grade, ability, tiredness,
+# attention, stress, motivation, prior knowledge). It's a deliberately
+# separate model from Profile above, not a replacement for it -- Profile is
+# what the existing lesson pipeline reads and is covered by tests; this one
+# is additive, used only by the new orchestrator hint slice, so it can
+# evolve without touching the working code path.
+
+class StudentProfile(BaseModel):
+    name: str = "Candidate_Node"
+    age: int = 10
+    grade: int = 4
+    ability: str = "Elementary"
+    tiredness: int = Field(3, ge=0, le=10)
+    attention: int = Field(7, ge=0, le=10)
+    stress: int = Field(2, ge=0, le=10)
+    motivation: int = Field(7, ge=0, le=10)
+    prior_knowledge: int = Field(3, ge=0, le=10)
+
+
 class SessionState(BaseModel):
     session_id: str
     xp: int = 0
     profile: Profile = Field(default_factory=Profile)
+    student_profile: Optional[StudentProfile] = None
     subjectContext: Optional[SubjectContext] = None
     mistakeGenome: list[dict] = Field(default_factory=list)
 
@@ -102,6 +125,27 @@ class SessionState(BaseModel):
 class CreateSessionResponse(BaseModel):
     session_id: str
     state: SessionState
+
+
+class CreateSessionRequest(BaseModel):
+    """Optional body for POST /api/session. Old callers (frontend/
+    adaptive_learning_avatar_demo_v4.html) send no body at all, which is
+    still valid -- every field here is optional so that keeps working
+    unchanged."""
+    profile: Optional[StudentProfile] = None
+
+
+class HintRequest(BaseModel):
+    task_number: int
+    task_question: str
+    grade_band: str
+    static_hint_fallback: str = ""
+
+
+class HintResponse(BaseModel):
+    hint_text: str
+    source: Literal["orchestrator", "static"] = "orchestrator"
+    reward_metric: float = 0.0
 
 
 class LessonRequest(BaseModel):

@@ -93,14 +93,72 @@ src/learning_avatar/
     concept_definitions.json            ground-truth physics per concept
   web/
     main.py                     FastAPI app + serves frontend/ same-origin
+  orchestrator/                 Phase 2 -- LangGraph Router/Policy/Worker/Critic
+    graph.py                     graph definition, compiled once at import
+    nodes.py                     node functions; router/policy are stubs, worker/critic are real
+  labmodel/                     Phase 2 -- Worker (generator) / Critic (reviewer)
+    worker.py                    calls llm_client.py to draft a hint
+    critic.py                    rejects empty/oversized hints, no other checks yet
+  storage/
+    qdrant_client.py             Phase 2 stub -- NotImplementedError, not wired to anything
 tests/
   conftest.py                  shared fixtures, incl. mock_llm
   test_teaching_agent.py        mocks the MCP client layer
   test_root_agent.py            mocks the teaching_agent layer (one level up)
 frontend/
-  adaptive_learning_avatar_demo_v4.html   now fetches lessons from the API —
-                                            no embedded content anymore
+  adaptive_learning_avatar_demo_v4.html   Phase 1 UI -- fetches lessons from the API,
+                                            no embedded content
+  forces_lab.html                          Phase 2 UI -- cleaned-up version of an uploaded
+                                            demo, served at /forces-lab; only its hint
+                                            button is backend-wired so far (see below)
 ```
+
+## Phase 2: the multi-agent evolution (LangGraph, and one real vertical slice)
+
+Everything above this section is Phase 1 and still works exactly as before.
+Phase 2 adds the beginning of a larger architecture (see the plan doc this
+was built from) on top of it, without touching Phase 1's working code:
+
+- **`orchestrator/`** is a real, compiled `langgraph.graph.StateGraph` --
+  not a stub -- with four nodes: `router` and `policy` are placeholders
+  (`nodes.py` has `TODO` markers for the real classification/safety-gate
+  logic the plan doc describes), `worker` and `critic` are real, calling
+  `labmodel/worker.py` (an LLM call through the existing `LLMClient`
+  interface) and `labmodel/critic.py` (a small validation pass) respectively.
+- **The one real end-to-end slice:** `frontend/forces_lab.html`'s "💡 Hint"
+  button → `POST /api/session/<id>/hint` → `orchestrator.graph.run_hint_orchestrator`
+  → Router → Policy → Worker (LLM call) → Critic → hint text back to the
+  browser. If any step fails, the route degrades to the hint text the
+  frontend already had hardcoded, and says so (`source: "static"` in the
+  response) -- see `web/main.py`'s `/hint` route.
+- **Everything else is still static.** `forces_lab.html`'s five tasks, the
+  theory slideshow, and the SVG scenes are unchanged client-side content
+  from the uploaded demo (cleaned of `[cite: N]` artifacts and one real bug
+  fixed: the "ability level" dropdown was captured but never used to pick
+  content -- it now is, see `pickBand()` in the HTML). Porting that content
+  server-side the way the Newton's-laws lesson library already was is
+  future work, not done here.
+- **`storage/qdrant_client.py`** is a stub. Nothing calls it. It exists so
+  the module layout matches the plan doc's VectorDB layer and is where
+  semantic search over curriculum docs would go later (plan doc section 5.2).
+
+### Verifying the new orchestrator slice
+
+This was written with no network access to `uv sync` a new dependency
+(`langgraph`), so it's only been checked with `python -m py_compile` and by
+reading the LangGraph API, not actually run. Before trusting it:
+
+```bash
+uv sync   # pulls in langgraph>=0.2.0
+uv run learning-avatar-mcp-server   # Terminal 1, as usual
+uv run learning-avatar-serve        # Terminal 2, as usual
+```
+
+Then open `/forces-lab` (not `/`), pick a grade + ability level, and click
+a task's "💡 Hint" button. Check the Network tab for `POST .../hint` — a
+200 with `"source": "orchestrator"` means the LangGraph path ran for real;
+`"source": "static"` means something failed and it degraded gracefully
+(check server logs for what).
 
 ## Running it
 

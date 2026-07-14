@@ -56,11 +56,21 @@ class MockLLMClient(LLMClient):
     async def complete(self, system_prompt: str, user_message: str, model: str) -> str:
         try:
             payload = json.loads(user_message)
-            concept = payload.get("subjectContext", {}).get("concept", "unknown_concept")
-            grade_band = payload.get("subjectContext", {}).get("gradeBand", "grade5")
-            theme = payload.get("subjectContext", {}).get("theme", "soccer")
         except (json.JSONDecodeError, AttributeError):
-            concept, grade_band, theme = "unknown_concept", "grade5", "soccer"
+            payload = None
+
+        if not isinstance(payload, dict) or "subjectContext" not in payload:
+            # Not a lesson-generation call (teaching_agent always sends JSON
+            # with a subjectContext key) -- this is some other, plain-text
+            # use of the LLMClient interface, e.g. labmodel/worker.py's hint
+            # generation. Return a short deterministic mock string instead
+            # of trying to force it into the LessonScreen shape below.
+            return ("[mock hint] Compare the two things being described directly -- "
+                    "which one is bigger, and what does that tell you about the direction of motion?")
+
+        concept = payload.get("subjectContext", {}).get("concept", "unknown_concept")
+        grade_band = payload.get("subjectContext", {}).get("gradeBand", "grade5")
+        theme = payload.get("subjectContext", {}).get("theme", "soccer")
 
         fake_record = {
             "id": f"{concept}_{grade_band}_{theme}_MOCK",

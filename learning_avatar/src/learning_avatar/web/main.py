@@ -27,14 +27,17 @@ Try the API directly (LLM_MODE=mock by default, so this costs $0):
 """
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Body, Depends, FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 
 from learning_avatar.agents import root_agent
 from learning_avatar.config import settings
 from learning_avatar.core.schemas import (
+    CreateSessionRequest,
     CreateSessionResponse,
     DiagnosticAnswer,
+    HintRequest,
+    HintResponse,
     LessonRequest,
     LessonResponse,
     SessionState,
@@ -43,6 +46,7 @@ from learning_avatar.core.schemas import (
 from learning_avatar.core.state_store import create_session, get_session, save_session
 from learning_avatar.llm_client import LLMClient, get_llm_client
 from learning_avatar.mcp.client import MCPServerUnavailableError
+from learning_avatar.orchestrator.graph import run_hint_orchestrator
 
 app = FastAPI(title="Learning Avatar — Agentic Backend")
 
@@ -55,8 +59,15 @@ def _require_session(session_id: str) -> SessionState:
 
 
 @app.post("/api/session", response_model=CreateSessionResponse)
-def new_session():
+def new_session(req: CreateSessionRequest | None = Body(default=None)):
+    """`req` is optional so the existing v4 frontend (which POSTs with no
+    body at all) keeps working unchanged. frontend/forces_lab.html sends
+    `{"profile": {...}}` -- when present, it's stored on the session as
+    `student_profile` for the new hint orchestrator route below to read."""
     state = create_session()
+    if req is not None and req.profile is not None:
+        state.student_profile = req.profile
+        save_session(state)
     return CreateSessionResponse(session_id=state.session_id, state=state)
 
 
@@ -88,6 +99,41 @@ async def lesson(session_id: str, req: LessonRequest, llm: LLMClient = Depends(g
 
     save_session(session)
     return result
+
+
+@app.post("/api/session/{session_id}/hint", response_model=HintResponse)
+async def hint(session_id: str, req: HintRequest, llm: LLMClient = Depends(get_llm_client)):
+    """The one real vertical slice through the new Phase 2 architecture
+    (see docs/architecture.md "Phase 2"): Router -> Policy -> LabModel-
+    Worker -> LabModel-Critic, run as a real LangGraph graph
+    (orchestrator/graph.py), calling the same LLMClient/mock-vs-live switch
+    every other route already uses. Falls back to the frontend-supplied
+    static hint on any failure -- a hint is low-stakes enough that this is
+    a 200 with source="static", not an error response."""
+    session = _require_session(session_id)
+    sp = session.student_profile
+
+    try:
+        result = await run_hint_orchestrator(
+            llm=llm,
+            model=settings.teaching_agent_model,
+            task_number=req.task_number,
+            task_question=req.task_question,
+            grade_band=req.grade_band,
+            attention_score=sp.attention if sp else 7,
+            motivation_score=sp.motivation if sp else 7,
+            static_hint_fallback=req.static_hint_fallback,
+        )
+        return HintResponse(
+            hint_text=result.get("hint_text") or req.static_hint_fallback,
+            source=result.get("source", "orchestrator"),
+            reward_metric=0.0,
+        )
+    except Exception as exc:  # noqa: BLE001 -- deliberately broad: a hint
+        # request degrading to the static fallback should never surface as
+        # a 500 to the student, regardless of which layer (LangGraph
+        # itself, the LLM call, an unconfigured dependency) failed.
+        return HintResponse(hint_text=req.static_hint_fallback, source="static", reward_metric=0.0)
 
 
 @app.post("/api/session/{session_id}/diagnostic", response_model=SessionState)
@@ -129,6 +175,14 @@ if settings.frontend_dir.exists():
     @app.get("/")
     def serve_frontend():
         return FileResponse(settings.frontend_dir / "adaptive_learning_avatar_demo_v4.html")
+
+    @app.get("/forces-lab")
+    def serve_forces_lab():
+        """The Phase 2 UI (cleaned-up version of the uploaded Gemini demo,
+        see docs/architecture.md). Served alongside "/", not replacing it --
+        v4's Hook/Sandbox/Concept/Diagnostic lesson flow still works exactly
+        as before at "/"."""
+        return FileResponse(settings.frontend_dir / "forces_lab.html")
 
 
 def run():

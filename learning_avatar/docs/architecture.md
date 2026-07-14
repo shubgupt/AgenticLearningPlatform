@@ -102,6 +102,50 @@ per request) for no benefit in a project this size — the two-terminal,
 start-it-yourself model is the same shape you'd use with any real backing
 service, and failures are visible instead of implicit.
 
+## Phase 2: LangGraph orchestrator (one real slice) + stubs for the rest
+
+Added on top of everything above, without changing any of it. Maps onto the
+"AI-Driven Adaptive Multi-Agent Learning Platform" plan doc's 6-layer
+architecture, scoped honestly:
+
+```mermaid
+flowchart TB
+    subgraph UI2[Phase 2 UI]
+        B2[forces_lab.html<br/>served at /forces-lab]
+    end
+
+    subgraph ORCH[LangGraph orchestrator -- REAL]
+        RN[router_node<br/>stub: always 'Hint']
+        PN[policy_node<br/>stub: always passes]
+        WN[worker_node<br/>REAL: calls LLMClient]
+        CN[critic_node<br/>REAL: length/empty check]
+    end
+
+    subgraph STUB[Declared, not implemented]
+        QD[storage/qdrant_client.py<br/>NotImplementedError]
+    end
+
+    B2 -->|POST /hint| RN --> PN --> WN --> CN -->|hint_text, source| B2
+```
+
+- **Real:** `orchestrator/graph.py` is an actually-compiled
+  `langgraph.graph.StateGraph`. `worker_node` calls `labmodel/worker.py`,
+  which calls the same `LLMClient` interface (mock or OpenAI) every other
+  route already uses. `critic_node` calls `labmodel/critic.py` and rejects
+  empty or oversized output, falling back to the frontend's static hint.
+- **Stub, on purpose, not by accident:** `router_node` and `policy_node`
+  always return the same fixed verdict — there's only one intent
+  (`Hint`) flowing through this graph so far, so there's nothing to route
+  or gate yet. `storage/qdrant_client.py` raises `NotImplementedError` on
+  every call and is not wired into any request path.
+- **Not touched:** Root/Teaching/Assessment agents, the MCP content server,
+  and `adaptive_learning_avatar_demo_v4.html` are all exactly as they were
+  in Phase 1. The plan doc's Router/Policy/Self-RAG/CRAG/GraphRAG-Lite/
+  Auditor nodes, Google ADK layer, DSPy compilation, and GRPO/RLVR
+  fine-tuning are **not represented anywhere in this codebase yet** —
+  scaffolding those honestly (with the same "stub with a TODO, don't fake
+  it" discipline as `storage/qdrant_client.py`) is future work.
+
 ## Why this shape
 
 - **Root Agent never touches content.** It only decides *whether* to call

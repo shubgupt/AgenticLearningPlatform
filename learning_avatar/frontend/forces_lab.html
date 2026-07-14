@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forces & Motion — Adaptive Science Lab & Lessons</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sky:#E8F4FF;--ink:#1C2B3A;--muted:#5A7084;--border:#C5D9EE;
+  --blue:#1D6FA4;--purple:#6C2FBE;--green:#15A34A;
+  --red:#DC2626;--amber:#D97706;--teal:#0E7490;
+  --xp:#F59E0B;--hint:#7C3AED;--card:#FFF;--r:14px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Nunito',sans-serif;background:linear-gradient(170deg,var(--sky) 0%,#EAF9EF 100%);min-height:100vh;color:var(--ink)}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(10,20,40,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:12px;overflow-y:auto}
+.mbox{background:#fff;border-radius:20px;max-width:520px;width:100%;padding:26px 24px;box-shadow:0 12px 48px rgba(0,0,0,.28);max-height:92vh;overflow-y:auto}
+.mbox h2{font-family:'Fredoka One',sans-serif;font-size:1.4rem;color:var(--ink);margin-bottom:3px}
+.mbox .sub{font-size:.8rem;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:460px){.fg{grid-template-columns:1fr}}
+.ff label{display:block;font-size:.7rem;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.ff input,.ff select{width:100%;border:2px solid var(--border);border-radius:8px;padding:7px 10px;font-family:'Nunito',sans-serif;font-size:.86rem;font-weight:700;color:var(--ink);background:#FAFCFF}
+.ff input:focus,.ff select:focus{outline:none;border-color:var(--blue)}
+.ff.full{grid-column:1/-1}
+.sl{display:flex;align-items:center;gap:8px}
+.sl input[type=range]{flex:1;accent-color:var(--blue)}
+.slv{min-width:28px;text-align:right;font-weight:800;font-size:.84rem;color:var(--blue)}
+.mh font-family:'Fredoka One',sans-serif;font-size:.78rem;color:var(--purple);text-transform:uppercase;letter-spacing:.06em;margin:13px 0 7px;border-bottom:2px solid #EDE9FF;padding-bottom:3px}
+.start-btn{width:100%;margin-top:14px;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;border:none;border-radius:10px;padding:12px;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer}
+.start-btn:hover{opacity:.88}
+
+/* ── TOP STRIP ── */
+.topstrip{background:var(--card);border-bottom:1.5px solid var(--border);padding:8px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.05);position:sticky;top:0;z-index:100}
+.tc{font-size:.74rem;font-weight:800;color:var(--muted);display:flex;align-items:center;gap:4px}
+.tc span{color:var(--ink)}
+.xp-badge{background:linear-gradient(135deg,var(--xp),#F97316);color:#fff;font-family:'Fredoka One',sans-serif;font-size:.82rem;padding:4px 12px;border-radius:20px;white-space:nowrap}
+.pw{background:var(--border);border-radius:4px;height:6px;flex:1;min-width:80px;overflow:hidden}
+.pf{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .6s ease;width:0%}
+
+/* ── GRADE BANNER ── */
+.gbanner{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;padding:10px 16px;font-size:.78rem;line-height:1.6;display:none}
+.gbanner.show{display:block}
+.gbt{font-family:'Fredoka One',sans-serif;font-size:.95rem;margin-bottom:2px}
+.gbchip{display:inline-block;background:rgba(255,255,255,.22);border-radius:20px;padding:2px 10px;font-size:.66rem;font-weight:800;letter-spacing:.04em;margin-right:6px}
+
+/* ── SPLIT SCREEN ── */
+.split{display:grid;grid-template-columns:420px 1fr;gap:0;min-height:calc(100vh - 80px)}
+@media(max-width:800px){.split{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
+.scene-panel{position:sticky;top:52px;height:calc(100vh - 52px);overflow:hidden;background:linear-gradient(170deg,#E0F0FF,#EAF9EF);border-right:1.5px solid var(--border);display:flex;flex-direction:column}
+@media(max-width:800px){.scene-panel{position:relative;height:auto;border-right:none;border-bottom:1.5px solid var(--border)}}
+.scene-header{padding:10px 14px 6px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.5)}
+.scene-lbl{font-family:'Fredoka One',sans-serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}
+.scene-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:10px;position:relative}
+.scene-wrap svg{width:100%;max-width:400px;display:block;transition:opacity .35s ease}
+.scene-fade{opacity:0!important}
+
+.task-panel{padding:16px;overflow-y:auto}
+
+/* ── THEORY SLIDESHOW MODULE ── */
+.slideshow-card{background:var(--card);border-radius:var(--r);border:2px dashed var(--purple);padding:20px;margin-bottom:18px;box-shadow:0 6px 16px rgba(108,47,190,.1)}
+.sl-header{font-family:'Fredoka One',sans-serif;font-size:1.15rem;color:var(--purple);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.sl-body{font-size:.9rem;line-height:1.65;color:var(--ink);margin-bottom:14px}
+.sl-nav{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.sl-dots{display:flex;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .2s}
+.dot.active{background:var(--purple)}
+.sl-btn{background:#F5F3FF;border:1.5px solid var(--purple);border-radius:6px;padding:4px 12px;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:800;color:var(--purple);cursor:pointer;transition:all .15s}
+.sl-btn:hover{background:var(--purple);color:#fff}
+.sl-btn.action{background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;border:none}
+
+/* ── HISTORY ── */
+.hp{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;display:none}
+.hp.show{display:block}
+.hp h3{font-family:'Fredoka One',sans-serif;font-size:.78rem;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.hr2{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);font-size:.74rem;color:var(--muted)}
+.hs{font-weight:800;color:var(--ink);min-width:34px}
+
+/* ── TASK CARD ── */
+.tcard{background:var(--card);border-radius:var(--r);border:2px solid var(--border);padding:17px 19px;margin-bottom:14px;transition:border-color .3s,box-shadow .3s}
+.tcard.active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,111,164,.10)}
+.tcard.done-ok{border-color:var(--green)}
+.tcard.done-bad{border-color:var(--amber)}
+.tcard.locked{opacity:.32;pointer-events:none}
+.tey{font-family:'Fredoka One',sans-serif;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.tq{font-size:.93rem;font-weight:800;color:var(--ink);line-height:1.4;margin-bottom:11px}
+.tstory{background:linear-gradient(135deg,#FFF8E1,#FFF3E0);border-left:4px solid var(--amber);border-radius:0 10px 10px 0;padding:10px 13px;font-size:.85rem;line-height:1.65;color:var(--ink);margin-bottom:12px}
+.tstory strong{color:#92400E}
+
+/* ── META ROW ── */
+.metarow{display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-wrap:wrap}
+.tbadge{background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums}
+.tbadge.warn{background:#FEF9C3;border-color:#FDE047;color:var(--amber)}
+.tbadge.slow{background:#FEE2E2;border-color:#FCA5A5;color:var(--red)}
+.abadge{background:#F5F3FF;border:1.5px solid #C4B5FD;border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:800;color:var(--purple)}
+
+/* ── HINT BUTTON ── */
+.hint-btn{background:#FAF5FF;border:1.5px solid var(--hint);border-radius:6px;padding:3px 10px;font-family:'Nunito',sans-serif;font-size:.7rem;font-weight:800;color:var(--hint);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.hint-btn:hover:not(:disabled){background:var(--hint);color:#fff}
+.hint-btn:disabled{opacity:.6;cursor:default}
+.hint-btn.used{background:#EDE9FF;color:#6B21A8;border-color:#C4B5FD;cursor:default}
+.hint-box{background:linear-gradient(135deg,#FAF5FF,#EDE9FF);border:1.5px solid #C4B5FD;border-radius:10px;padding:11px 13px;margin-top:8px;font-size:.82rem;line-height:1.6;color:#4C1D95;display:none}
+.hint-box.show{display:block}
+
+/* ── CHOICES ── */
+.choices{display:flex;flex-direction:column;gap:7px;margin-bottom:9px}
+.cbtn{display:flex;align-items:flex-start;gap:8px;background:#F4F8FC;border:2px solid var(--border);border-radius:10px;padding:10px 12px;font-family:'Nunito',sans-serif;font-size:.87rem;font-weight:700;color:var(--ink);cursor:pointer;text-align:left;transition:all .15s ease;line-height:1.4}
+.cbtn:hover:not(:disabled){background:#E6EFFF;border-color:var(--blue);transform:translateX(2px)}
+.cbtn:disabled{cursor:default}
+.cbtn.correct{background:#ECFDF5;border-color:var(--green);color:#064E3B}
+.cbtn.wrong{background:#FEF2F2;border-color:var(--red);color:#7F1D1D}
+.cbtn.slide-in{animation:slideIn .25s ease forwards}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.ck{width:22px;height:22px;border-radius:6px;background:#DDE8F5;color:var(--blue);font-weight:800;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1.5px solid #B6CCE8;transition:all .15s;margin-top:1px}
+.correct .ck{background:var(--green);color:#fff;border-color:var(--green)}
+.wrong .ck{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* ── DROPDOWN (T3) ── */
+.sfill{font-size:.9rem;font-weight:700;color:var(--ink);line-height:2.6;margin-bottom:8px}
+.bsel{font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:700;color:var(--blue);background:#E8F2FF;border:2px solid var(--blue);border-radius:7px;padding:2px 6px;cursor:pointer}
+.bsel.correct{background:#ECFDF5;border-color:var(--green);color:#064E3B}
+.bsel.wrong{background:#FEF2F2;border-color:var(--red);color:#7F1D1D}
+.wbank{background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:9px;padding:8px 12px;margin-bottom:11px;font-size:.76rem;font-weight:800;color:#166534}
+
+/* ── FEEDBACK ── */
+.fb{border-radius:10px;padding:10px 13px;font-size:.84rem;line-height:1.57;margin-top:9px;display:none}
+.fb.show{display:block}
+.fb.ok{background:#ECFDF5;border:1.5px solid var(--green);color:#064E3B}
+.fb.bad{background:#FEF2F2;border:1.5px solid var(--red);color:#7F1D1D}
+.fb strong{display:block;margin-bottom:3px}
+.why-not{background:rgba(255,255,255,.55);border-radius:7px;padding:7px 10px;margin-top:7px;font-size:.8rem;border-left:3px solid currentColor}
+
+/* ── XP CHANGE FLASH ── */
+.xp-flash{position:fixed;top:60px;right:16px;font-family:'Fredoka One',sans-serif;font-size:1.1rem;padding:8px 16px;border-radius:20px;z-index:300;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+.xp-flash.show{opacity:1;transform:translateY(0)}
+.xp-flash.pos{background:#D1FAE5;color:#065F46;border:2px solid #6EE7B7}
+.xp-flash.neg{background:#FEE2E2;color:#7F1D1D;border:2px solid #FCA5A5}
+
+/* ── BUTTONS ── */
+.brow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btn{border:none;border-radius:9px;padding:9px 18px;font-family:'Nunito',sans-serif;font-size:.84rem;font-weight:800;cursor:pointer;transition:all .15s;display:none;align-items:center;gap:4px}
+.btn.show{display:inline-flex}
+.btn-retry{background:#FFF7ED;color:var(--amber);border:2px solid var(--amber)}
+.btn-retry:hover{background:var(--amber);color:#fff}
+.btn-next{background:#F0FDF4;color:var(--green);border:2px solid var(--green)}
+.btn-next:hover{background:var(--green);color:#fff}
+.btn-check{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff}
+.btn-finish{background:linear-gradient(135deg,var(--green),var(--teal));color:#fff}
+
+/* ── RESULTS ── */
+.rp{display:none;background:var(--card);border-radius:18px;border:2px solid var(--border);padding:22px 20px;box-shadow:0 6px 28px rgba(29,111,164,.10);margin-bottom:20px}
+.rp.show{display:block}
+.rh{text-align:center;margin-bottom:20px}
+.rh h2{font-family:'Fredoka One',sans-serif;font-size:1.5rem;margin-bottom:4px}
+.rh .rtag{font-size:.84rem;color:var(--muted)}
+.xp-result{font-family:'Fredoka One',sans-serif;font-size:1.8rem;color:var(--xp);margin:8px 0 4px}
+.xp-breakdown{font-size:.75rem;color:var(--muted);line-height:1.8;background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:10px;padding:10px 13px;margin-bottom:14px;text-align:left}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:11px;margin-bottom:20px}
+.mc{background:linear-gradient(135deg,#F0F9FF,#EDE9FF);border:1.5px solid var(--border);border-radius:12px;padding:13px}
+.ml{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px}
+.mv{font-family:'Fredoka One',sans-serif;font-size:1.5rem;color:var(--blue);line-height:1.1;margin-bottom:3px}
+.mm{font-size:.68rem;color:var(--muted)}
+.mbar{background:#E2EDF7;border-radius:5px;height:6px;overflow:hidden;margin-top:6px}
+.mbf{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.mc.gc{background:linear-gradient(135deg,#F0FDF4,#ECFDF5)}.mc.gc .mv{color:var(--green)}.mc.gc .mbf{background:linear-gradient(90deg,var(--green),var(--teal))}
+.mc.ac{background:linear-gradient(135deg,#FFFBEB,#FEF9C3)}.mc.ac .mv{color:var(--amber)}.mc.ac .mbf{background:linear-gradient(90deg,var(--amber),#F59E0B)}
+.mc.hc{background:linear-gradient(135deg,#FAF5FF,#EDE9FF)}.mc.hc .mv{color:var(--hint)}.mc.hc .mbf{background:linear-gradient(90deg,var(--hint),#9333EA)}
+.io{background:#F8FAFC;border:1.5px solid var(--border);border-radius:12px;padding:13px 15px;margin-bottom:13px}
+.io h3{font-family:'Fredoka One',sans-serif;font-size:.78rem;color:var(--purple);text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px}
+.iot{width:100%;border-collapse:collapse;font-size:.78rem}
+.iot th{background:#EDE9FF;color:var(--purple);font-weight:800;padding:5px 8px;border:1.5px solid #C4B5FD;text-align:left}
+.iot td{padding:4px 8px;border:1.5px solid var(--border)}
+.pqt{width:100%;border-collapse:collapse;font-size:.76rem;margin-top:7px}
+.pqt th{background:#EFF6FF;color:var(--blue);font-weight:800;padding:5px 8px;border:1.5px solid #BFDBFE;text-align:left}
+.pqt td{padding:4px 8px;border:1.5px solid var(--border)}
+.sr{display:flex;justify-content:center;gap:7px;margin:10px 0}
+.si{font-size:1.5rem;opacity:.18;transition:all .4s}
+.si.lit{opacity:1;animation:sPop .4s ease forwards}
+.arow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.abtn{border:none;border-radius:10px;padding:10px 22px;font-family:'Nunito',sans-serif;font-size:.86rem;font-weight:800;cursor:pointer;transition:opacity .2s}
+.abtn.primary{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff}
+.abtn.secondary{background:#F4F8FC;color:var(--blue);border:2px solid var(--blue)}
+@keyframes boxShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.shake{animation:boxShake .55s ease}
+@keyframes sPop{0%{transform:scale(.3)}70%{transform:scale(1.4)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+
+<div class="xp-flash" id="xpFlash"></div>
+
+<!-- ══ ONBOARDING MODAL ══ -->
+<div class="overlay" id="overlay">
+<div class="mbox">
+  <h2>⚡ Science Lab — Adaptive Platform</h2>
+  <p class="sub">Configure student metadata. Experience adapts structural layout and content based on your profile inputs.</p>
+  
+  <div class="mh" style="font-family:'Fredoka One';font-size:.78rem;color:var(--purple);margin:10px 0;">Track Pathway Options</div>
+  <div class="ff full" style="margin-bottom: 12px;">
+    <label>Select Learning Pathway Mode</label>
+    <select id="pFlow">
+      <option value="activity">Activity-Based (Direct Lab Deployment)</option>
+      <option value="lesson">Lesson-Based (Theory Slides & Context Prep First)</option>
+    </select>
+  </div>
+
+  <div class="mh" style="font-family:'Fredoka One';font-size:.78rem;color:var(--purple);margin:10px 0;">🎓 Student Demographics</div>
+  <div class="fg">
+    <div class="ff"><label>Name</label><input id="pName" placeholder="Your name" maxlength="30"/></div>
+    <div class="ff"><label>Age (0–18)</label><input type="number" id="pAge" min="0" max="18" placeholder="10"/></div>
+    <div class="ff"><label>Grade (0=K, 1–12, 13=College)</label><input type="number" id="pGrade" min="0" max="15" placeholder="4"/></div>
+    <div class="ff"><label>Ability Level</label>
+      <select id="pAbility"><option value="">— select —</option>
+        <option>Elementary</option><option>Middle School</option>
+        <option>High School</option><option>College</option><option>PhD</option>
+      </select>
+    </div>
+    <div class="ff full"><label>Starting performance rating (0–10000)</label>
+      <div class="sl"><input type="range" id="pXP" min="0" max="10000" value="1000" oninput="document.getElementById('pXPv').textContent=this.value"/><span class="slv" id="pXPv">1000</span></div>
+    </div>
+  </div>
+  <div class="mh" style="font-family:'Fredoka One';font-size:.78rem;color:var(--purple);margin:10px 0;">🧠 Affective State Variables</div>
+  <div class="fg">
+    <div class="ff full"><label>Tiredness (0=alert · 10=exhausted)</label>
+      <div class="sl"><input type="range" id="pTired" min="0" max="10" value="3" oninput="document.getElementById('pTiredv').textContent=this.value"/><span class="slv" id="pTiredv">3</span></div>
+    </div>
+    <div class="ff full"><label>Attention (0=distracted · 10=focused)</label>
+      <div class="sl"><input type="range" id="pAttn" min="0" max="10" value="7" oninput="document.getElementById('pAttnv').textContent=this.value"/><span class="slv" id="pAttnv">7</span></div>
+    </div>
+    <div class="ff full"><label>Stress (0=calm · 10=very stressed)</label>
+      <div class="sl"><input type="range" id="pStr" min="0" max="10" value="2" oninput="document.getElementById('pStrv').textContent=this.value"/><span class="slv" id="pStrv">2</span></div>
+    </div>
+    <div class="ff full"><label>Motivation (0=bored · 10=excited)</label>
+      <div class="sl"><input type="range" id="pMotiv" min="0" max="10" value="7" oninput="document.getElementById('pMotivv').textContent=this.value"/><span class="slv" id="pMotivv">7</span></div>
+    </div>
+    <div class="ff full"><label>Prior Knowledge of Forces (0–10)</label>
+      <div class="sl"><input type="range" id="pPrior" min="0" max="10" value="3" oninput="document.getElementById('pPriorv').textContent=this.value"/><span class="slv" id="pPriorv">3</span></div>
+    </div>
+  </div>
+  <button class="start-btn" onclick="startPlatform()">Initialize Learning Array →</button>
+</div>
+</div>
+
+<!-- ══ PLATFORM UI INTERFACE ══ -->
+<div id="lessonBody" style="display:none">
+
+  <!-- HUD STATUS STREAM -->
+  <div class="topstrip">
+    <div class="tc">👤 <span id="hudName">—</span></div>
+    <div class="tc">🎓 Gr <span id="hudGrade">—</span></div>
+    <div class="xp-badge" id="xpBadge">⚡ XP: 1000</div>
+    <div class="pw"><div class="pf" id="pf"></div></div>
+    <div class="tc" id="hudProg">Q1/5</div>
+    <div class="tc">🕐 <span id="hudClock">0:00</span></div>
+  </div>
+
+  <!-- METADATA STANDARDS DISPLAY -->
+  <div class="gbanner" id="gbanner">
+    <div class="gbt" id="gbtitle"></div>
+    <div><span class="gbchip" id="gbchip"></span><span id="gbdesc" style="opacity:.88"></span></div>
+  </div>
+
+  <!-- APPLICATION COMPARTMENTS -->
+  <div class="split">
+
+    <!-- CORES PHYSICS RENDERING NODE -->
+    <div class="scene-panel">
+      <div class="scene-header"><div class="scene-lbl" id="sceneLabel">📦 Scene A — Balanced States</div></div>
+      <div class="scene-wrap">
+        <!-- SVG ASSETS -->
+        <svg id="svgA" viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">
+          <rect width="400" height="240" fill="#E8F4FF"/>
+          <rect y="180" width="400" height="60" fill="#C8E6C9"/>
+          <rect y="175" width="400" height="7" fill="#A5D6A7"/>
+          <line x1="0" y1="182" x2="400" y2="182" stroke="#90CAF9" stroke-width="1.2" stroke-dasharray="12,8"/>
+          <g id="boxGrp">
+            <rect x="155" y="110" width="90" height="68" rx="6" fill="#FEF9C4" stroke="#F59E0B" stroke-width="2.5"/>
+            <line x1="155" y1="110" x2="245" y2="178" stroke="#F59E0B" stroke-width="1" opacity=".4"/>
+            <line x1="245" y1="110" x2="155" y2="178" stroke="#F59E0B" stroke-width="1" opacity=".4"/>
+            <text x="200" y="150" text-anchor="middle" font-family="Fredoka One" font-size="12" fill="#92400E" id="boxLbl">BOX</text>
+          </g>
+          <text x="36" y="128" text-anchor="middle" font-size="22">🙂</text>
+          <text x="36" y="150" text-anchor="middle" font-family="Fredoka One" font-size="9" fill="#1C2B3A" id="cLeft">Priya</text>
+          <text x="364" y="128" text-anchor="middle" font-size="22">😊</text>
+          <text x="364" y="150" text-anchor="middle" font-family="Fredoka One" font-size="9" fill="#1C2B3A" id="cRight">Marcus</text>
+          <defs>
+            <marker id="ahR" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0,0 7,2.5 0,5" fill="#1D6FA4"/></marker>
+            <marker id="ahL" markerWidth="7" markerHeight="5" refX="0" refY="2.5" orient="auto-start-reverse"><polygon points="0,0 7,2.5 0,5" fill="#DC2626"/></marker>
+          </defs>
+          <g id="arrowsA" opacity="0" style="transition:opacity .6s">
+            <line x1="62" y1="144" x2="151" y2="144" stroke="#1D6FA4" stroke-width="4" marker-end="url(#ahR)"/>
+            <text x="107" y="134" text-anchor="middle" font-family="Fredoka One" font-size="8.5" fill="#1D6FA4">→ PUSH</text>
+            <line x1="249" y1="144" x2="338" y2="144" stroke="#DC2626" stroke-width="4" marker-start="url(#ahL)"/>
+            <text x="293" y="134" text-anchor="middle" font-family="Fredoka One" font-size="8.5" fill="#DC2626">PUSH ←</text>
+          </g>
+          <g id="boxRes" opacity="0" style="transition:opacity .5s">
+            <rect x="130" y="65" width="140" height="28" rx="8" fill="white" stroke="#15A34A" stroke-width="2"/>
+            <text id="boxResTxt" x="200" y="84" text-anchor="middle" font-family="Fredoka One" font-size="11" fill="#166534">No Acceleration</text>
+          </g>
+        </svg>
+
+        <svg id="svgB" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" style="display:none">
+          <rect width="400" height="220" fill="#E8F4FF"/>
+          <rect y="168" width="400" height="52" fill="#C8E6C9"/>
+          <rect y="163" width="400" height="7" fill="#A5D6A7"/>
+          <line x1="0" y1="170" x2="400" y2="170" stroke="#90CAF9" stroke-width="1.2" stroke-dasharray="12,8"/>
+          <g id="ballGrp">
+            <circle cx="200" cy="140" r="22" fill="white" stroke="#1C2B3A" stroke-width="2.5"/>
+            <polygon points="200,120 192,130 195,142 205,142 208,130" fill="#1C2B3A" opacity=".75"/>
+          </g>
+          <defs>
+            <marker id="ahBR" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0,0 7,2.5 0,5" fill="#1D6FA4"/></marker>
+            <marker id="ahBL" markerWidth="7" markerHeight="5" refX="0" refY="2.5" orient="auto"><polygon points="7,0 0,2.5 7,5" fill="#DC2626"/></marker>
+          </defs>
+          <line id="bPA" x1="224" y1="140" x2="264" y2="140" stroke="#1D6FA4" stroke-width="4" marker-end="url(#ahBR)" opacity="0" style="transition:opacity .4s"/>
+          <text id="bPL" x="278" y="136" font-family="Fredoka One" font-size="8.5" fill="#1D6FA4" opacity="0" style="transition:opacity .4s">push→</text>
+          <line id="bFA" x1="176" y1="155" x2="136" y2="155" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="5,3" marker-end="url(#ahBL)" opacity="0" style="transition:opacity .4s"/>
+          <text id="bFL" x="110" y="152" font-family="Fredoka One" font-size="8" fill="#DC2626" opacity="0" style="transition:opacity .4s">←friction</text>
+          <g id="ballRes" opacity="0" style="transition:opacity .5s">
+            <rect x="270" y="118" width="116" height="26" rx="8" fill="white" stroke="#1D6FA4" stroke-width="2"/>
+            <text id="ballResTxt" x="328" y="136" text-anchor="middle" font-family="Fredoka One" font-size="10" fill="#1D6FA4">Dynamic Motion</text>
+          </g>
+          <text x="44" y="130" text-anchor="middle" font-size="22">🙂</text>
+          <text x="44" y="152" text-anchor="middle" font-family="Fredoka One" font-size="9" fill="#1C2B3A">Priya</text>
+          <text x="358" y="130" text-anchor="middle" font-size="20" opacity=".28">😊</text>
+          <text x="358" y="150" text-anchor="middle" font-family="Fredoka One" font-size="8" fill="#A0AEC0">0 N</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- RIGHT: INTERACTIVE CONTAINER PANELS -->
+    <div class="task-panel" id="uiRightPanel">
+      
+      <!-- THEORY SLIDES CONTAINER MODULE -->
+      <div class="slideshow-card" id="theorySlideshow" style="display:none">
+        <div class="sl-header"><span>📖 Core Conceptual Slide:</span> <span id="slNum">1/4</span></div>
+        <div class="sl-body" id="slBodyText">Loading theory parameters...</div>
+        <div class="sl-nav">
+          <button class="sl-btn" id="slPrevBtn" onclick="changeSlide(-1)">« Back</button>
+          <div class="sl-dots" id="slDots"></div>
+          <button class="sl-btn" id="slNextBtn" onclick="changeSlide(1)">Next »</button>
+        </div>
+      </div>
+
+      <div class="hp" id="histPanel"><h3>📊 History Buffers</h3><div id="histList"></div></div>
+
+      <div id="activityTrackContainer">
+        <!-- T1 -->
+        <div class="tcard locked" id="task1">
+          <div class="tey">🔬 Task 1 <span id="t1b"></span></div>
+          <div class="tstory" id="t1story"></div>
+          <div class="tq" id="t1q"></div>
+          <div class="metarow">
+            <div class="tbadge" id="tmr1">⏱ 0s</div>
+            <div class="abadge" id="att1">Attempt 1</div>
+            <button class="hint-btn" id="hbtn1" onclick="showHint(1)">💡 Hint</button>
+          </div>
+          <div class="hint-box" id="hbox1"></div>
+          <div class="choices" id="ch1"></div>
+          <div class="fb" id="fb1"></div>
+          <div class="brow">
+            <button class="btn btn-retry" id="retry1" onclick="retryTask(1)">↺ Shuffle & Retry</button>
+            <button class="btn btn-next" id="next1" onclick="goNext(1)">Next ›</button>
+          </div>
+        </div>
+
+        <!-- T2 -->
+        <div class="tcard locked" id="task2">
+          <div class="tey">⚽ Task 2 <span id="t2b"></span></div>
+          <div class="tstory" id="t2story"></div>
+          <div class="tq" id="t2q"></div>
+          <div class="metarow">
+            <div class="tbadge" id="tmr2">⏱ 0s</div>
+            <div class="abadge" id="att2">Attempt 1</div>
+            <button class="hint-btn" id="hbtn2" onclick="showHint(2)">💡 Hint</button>
+          </div>
+          <div class="hint-box" id="hbox2"></div>
+          <div class="choices" id="ch2"></div>
+          <div class="fb" id="fb2"></div>
+          <div class="brow">
+            <button class="btn btn-retry" id="retry2" onclick="retryTask(2)">↺ Shuffle & Retry</button>
+            <button class="btn btn-next" id="next2" onclick="goNext(2)">Next ›</button>
+          </div>
+        </div>
+
+        <!-- T3 -->
+        <div class="tcard locked" id="task3">
+          <div class="tey">📝 Task 3 — Syntactic Synthesis <span id="t3b"></span></div>
+          <div class="tq" id="t3q">Fill the semantic structural targets from the data bank:</div>
+          <div class="wbank" id="t3wb"></div>
+          <div class="metarow">
+            <div class="tbadge" id="tmr3">⏱ 0s</div>
+            <div class="abadge" id="att3">Attempt 1</div>
+            <button class="hint-btn" id="hbtn3" onclick="showHint(3)">💡 Hint</button>
+          </div>
+          <div class="hint-box" id="hbox3"></div>
+          <div id="t3sents"></div>
+          <div class="fb" id="fb3"></div>
+          <div class="brow">
+            <button class="btn btn-check show" id="chk3" onclick="checkT3()">✓ Check Entries</button>
+            <button class="btn btn-retry" id="retry3" onclick="retryTask(3)">↺ Try Again</button>
+            <button class="btn btn-next" id="next3" onclick="goNext(3)">Next ›</button>
+          </div>
+        </div>
+
+        <!-- T4 -->
+        <div class="tcard locked" id="task4">
+          <div class="tey">🤔 Task 4 — Context Modification <span id="t4b"></span></div>
+          <div class="tstory" id="t4story"></div>
+          <div class="tq" id="t4q"></div>
+          <div class="metarow">
+            <div class="tbadge" id="tmr4">⏱ 0s</div>
+            <div class="abadge" id="att4">Attempt 1</div>
+            <button class="hint-btn" id="hbtn4" onclick="showHint(4)">💡 Hint</button>
+          </div>
+          <div class="hint-box" id="hbox4"></div>
+          <div class="choices" id="ch4"></div>
+          <div class="fb" id="fb4"></div>
+          <div class="brow">
+            <button class="btn btn-retry" id="retry4" onclick="retryTask(4)">↺ Shuffle & Retry</button>
+            <button class="btn btn-next" id="next4" onclick="goNext(4)">Next ›</button>
+          </div>
+        </div>
+
+        <!-- T5 -->
+        <div class="tcard locked" id="task5">
+          <div class="tey">🔬 Task 5 — Investigative Protocol <span id="t5b"></span></div>
+          <div class="tstory" style="border-color:#6C2FBE;background:linear-gradient(135deg,#F5F3FF,#EDE9FF)"><strong style="color:#5B21B6">Variables Boundary Constraint:</strong> Isolate one independent parameter; hold secondary operational tracks static.</div>
+          <div class="tq" id="t5q"></div>
+          <div class="metarow">
+            <div class="tbadge" id="tmr5">⏱ 0s</div>
+            <div class="abadge" id="att5">Attempt 1</div>
+            <button class="hint-btn" id="hbtn5" onclick="showHint(5)">💡 Hint</button>
+          </div>
+          <div class="hint-box" id="hbox5"></div>
+          <div class="choices" id="ch5"></div>
+          <div class="fb" id="fb5"></div>
+          <div class="brow">
+            <button class="btn btn-retry" id="retry5" onclick="retryTask(5)">↺ Shuffle & Retry</button>
+            <button class="btn btn-next btn-finish" id="next5" onclick="showResults()">Compile Profile Metrics 🏆</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTS PANEL -->
+      <div class="rp" id="rPanel">
+        <div class="rh">
+          <div style="font-size:2.8rem;margin-bottom:6px" id="rIcon">🏆</div>
+          <h2 id="rTitle">Evaluation Terminal Complete</h2>
+          <p class="rtag" id="rTag"></p>
+          <div class="sr" id="starRow"></div>
+          <div class="xp-result" id="xpResult"></div>
+          <div class="xp-breakdown" id="xpBreak"></div>
+        </div>
+        <div class="io"><h3>📥 Input Parametric Profile</h3><table class="iot" id="inTable"></table></div>
+        <div class="io"><h3>📚 NGSS Structural Anchors</h3><div id="stdApplied" style="font-size:.8rem;line-height:1.7;color:var(--ink)"></div></div>
+        <div class="mgrid" id="mGrid"></div>
+        <div class="io"><h3>📋 Comprehensive Competency Matrix</h3>
+          <table class="pqt" id="pqTable">
+            <tr><th>Node</th><th>Assessment Anchor</th><th>Accuracy Status</th><th>Attempts</th><th>Latency</th><th>Hint Access</th><th>Yield Score</th></tr>
+          </table>
+        </div>
+        <div class="io"><h3>💾 Output Runtime JSON Array</h3><pre id="jsonOut" style="font-size:.68rem;background:#0D1117;color:#7EE787;border-radius:8px;padding:11px;overflow-x:auto;line-height:1.6;max-height:240px;overflow-y:auto"></pre></div>
+        <div class="arow">
+          <button class="abtn primary" onclick="retryAll()">↺ Restart Module Run</button>
+          <button class="abtn secondary" onclick="newStudent()">👤 Wipe Matrix Workspace</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+var DCI={
+  K:{
+    band:'Kindergarten',std:'K-PS2-1 / K-PS2-2',chip:'K · PS2.A',
+    desc:'Pushes and pulls have different strengths and directions. A push or pull can change an object\'s speed or direction.',
+    slides:[
+      '<h3>👋 Welcome to Forces!</h3><p>A <b>push</b> or a <b>pull</b> makes things move. You do this when you kick a ball or close a door!</p>',
+      '<h3>📦 Big and Small Pushes</h3><p>Some pushes are big and strong, and some are tiny. Stronger pushes make things go faster!</p>',
+      '<h3>⚖️ Balanced Pushes</h3><p>When two friends push a box from opposite sides with equal strength, the box stays completely still. They cancel out!</p>',
+      '<h3>🎯 Changing Direction</h3><p>Pushing an object can make it change where it is going, or stop it entirely. Let\'s try out the interactive experiment cards now!</p>'
+    ],
+    hints:{1:'💡 Think about a tug-of-war: what happens when both teams pull equally hard?',2:'💡 If only ONE person pushes and nobody pushes back, where does the ball go?',3:'💡 "Balanced" means equal from both sides. "Unbalanced" means one side is stronger.',4:'💡 Which push is bigger? The object moves toward the BIGGER push.',5:'💡 A fair test changes only ONE thing. Which answer changes only the direction?'},
+    t1:{story:'Sofia gives the box a BIG push from the left. Her friend gives an equally BIG push from the right.',q:'What happens when two equal pushes act from opposite sides?',ch:['The box moves toward Sofia','The box stays still — the pushes cancel out','The box moves very fast','The box falls down'],correct:1,fb_ok:'✅ Yes! Equal pushes from both sides cancel out — the box stays still. That\'s balanced forces! (K-PS2-1)',fb_bad:'❌ Equal pushes from opposite sides cancel each other out. The box stays still — just like a tied tug-of-war!'},
+    t2:{story:'Now only Sofia pushes the ball from the left side. Nobody pushes from the right.',q:'What will happen to the ball?',ch:['Nothing — one push isn\'t enough','The ball moves in the direction of Sofia\'s push','The ball goes backward','The ball goes up'],correct:1,fb_ok:'✅ Correct! One push with nothing pushing back moves the ball in that direction! (K-PS2-1)',fb_bad:'❌ One push with nothing on the other side moves the ball in the direction of that push!'},
+    t3:{wb:'📚 Word Bank: balanced · unbalanced · stayed still · moved',s:{s1:{pre:'When equal pushes act from both sides, the forces are',sel:['balanced','unbalanced'],ans:'balanced',post:''},s2:{pre:'The box',sel:['stayed still','moved'],ans:'stayed still',post:'because the pushes cancelled out.'},s3:{pre:'When only one push acts, the forces are',sel:['balanced','unbalanced'],ans:'unbalanced',post:'and the ball moved.'}}},
+    t4:{story:'What if Sofia pushes HARDER than her friend? One push is now stronger!',q:'What happens when one push is bigger than the other?',ch:['Stays still — forces always cancel','Moves toward the STRONGER push','Moves toward the weaker push','Flies into the air'],correct:1,fb_ok:'✅ Right! The bigger push wins — the box moves toward the stronger push! (K-PS2-1)',fb_bad:'❌ When one push is bigger, the object moves toward the STRONGER push!'},
+    t5:{q:'You want to see how DIRECTION of a push changes motion. What is the best test?',ch:['Push the ball in different directions, same strength each time. See where it goes.','Push the ball in different directions AND change how hard you push each time.','Push the ball in the SAME direction every time but change how hard you push.','Watch someone else push the ball and guess what will happen.'],correct:0,fb_ok:'✅ Great fair test! Only direction changes — everything else stays the same. (K-PS2-1)',fb_bad:'❌ A fair test changes only ONE thing. Answer A changes only direction — that\'s the correct test!',why_c:'⚠️ Why not C? Answer C changes how HARD you push (force strength) — not the direction. It tests a completely different question: "Does pushing harder change motion?" For THIS question about direction, only Answer A is correct — it changes only direction, keeping everything else the same.'}
+  },
+  Elem:{
+    band:'Elementary (Grades 1–5)',std:'3-PS2-1 / 3-PS2-2',chip:'Grades 3–5 · PS2.A',
+    desc:'Each force has strength and direction. Balanced forces produce no change in motion. Unbalanced forces change speed or direction.',
+    slides:[
+      '<h3>⚖️ Force Vectors Intro</h3><p>Every single force has both a <b>strength</b> (measured in magnitude) and a clear <b>direction</b>. We use arrows to show them!</p>',
+      '<h3>🛑 Net Zero Equilibrium</h3><p>When multiple forces are perfectly matched but look in opposite directions, the total <b>net force is zero</b>. The object will change nothing about its current state of rest.</p>',
+      '<h3>🏃 Unbalanced Systems</h3><p>If forces do not match up evenly, the net force is greater than zero. This causes a stationary object to change speed or pivot direction.</p>',
+      '<h3>📈 Pattern Mapping</h3><p>By observing repeating motion patterns over time, we can scientifically predict future paths of objects. Let\'s begin the laboratory exercises!</p>'
+    ],
+    hints:{1:'💡 Balanced forces cancel each other. What is the NET force when both sides push equally?',2:'💡 One force, one direction = unbalanced. Which direction is the only force pointing?',3:'💡 Cause → Effect: the TYPE of force (balanced/unbalanced) CAUSES the motion result.',4:'💡 Net force = bigger force − smaller force. In which direction is the net force?',5:'💡 Independent variable = the ONE thing you change. What is the research question asking about?'},
+    t1:{story:'Priya pushes the box from the left. Marcus pushes equally from the right. Each force: equal strength, opposite direction.',q:'Are the forces on the box balanced or unbalanced?',ch:['Balanced — equal and opposite forces cancel → zero net force','Unbalanced — Priya is pushing harder','Unbalanced — Marcus is pushing harder','There are no forces on the box'],correct:0,fb_ok:'✅ Correct! Equal and opposite forces cancel to zero net force. No change in motion. (3-PS2-1, PS2.A)',fb_bad:'❌ Equal forces from opposite sides cancel out. Zero net force = no change in motion. That\'s balanced!'},
+    t2:{story:'Only Priya pushes the soccer ball from the left. Marcus stands back. One force, pointing right.',q:'The forces are unbalanced. What happens to the ball?',ch:['Nothing — one force is never enough','The ball rolls RIGHT — in the direction of Priya\'s push','The ball rolls LEFT — away from Priya','The ball goes straight up'],correct:1,fb_ok:'✅ Right! An unbalanced force moves the object in the direction of that force — to the right! (3-PS2-1)',fb_bad:'❌ An unbalanced force (only one side!) moves the object toward the side being pushed — to the RIGHT.'},
+    t3:{wb:'📚 Word Bank: balanced · unbalanced · did not move · rolled to the right · friction · gravity',s:{s1:{pre:'Because the forces on the box were',sel:['balanced','unbalanced'],ans:'balanced',post:'the box did not move.'},s2:{pre:'Because the force on the ball was',sel:['balanced','unbalanced'],ans:'unbalanced',post:'the ball rolled to the right.'},s3:{pre:'After a while, the ball slowed because',sel:['friction','gravity','Marcus'],ans:'friction',post:'acted against its motion.'}}},
+    t4:{story:'What if Marcus pushes the RIGHT side HARDER than Priya pushes the left? The forces are no longer equal!',q:'The forces are unbalanced. Which direction does the box move?',ch:['Moves RIGHT — Priya is still pushing','Moves LEFT — toward Marcus\'s stronger push','Stays still — forces always balance','Spins in a circle'],correct:1,fb_ok:'✅ Correct! Unbalanced forces move the object toward the STRONGER force. Marcus is stronger → box moves LEFT. (3-PS2-1)',fb_bad:'❌ The stronger force wins! Marcus pushes harder from the right → box moves LEFT toward his push.'},
+    t5:{q:'You want to test how DIRECTION of a force changes a ball\'s motion. Which plan is the best fair test?',ch:['Push from different directions, same strength each time. Observe which direction the ball rolls.','Change direction AND use a different ball each time — more variables = richer data.','Push from the SAME direction but change how hard you push each time.','Watch someone else push and record your estimates.'],correct:0,fb_ok:'✅ Perfect! One variable changed (direction), all others controlled. This is NGSS 3-PS2-1 SEP: fair investigations.',fb_bad:'❌ A fair test changes only ONE variable. Answer A changes only direction — keeping strength and ball the same.',why_c:'⚠️ Why not C? Answer C changes force STRENGTH, not DIRECTION. It would correctly test "How does pushing harder affect motion?" — but that\'s a completely different research question. Since THIS question is about direction, Answer C is testing the wrong independent variable. A fair test must change the variable the question is asking about — which is direction, not strength.'}
+  },
+  MS:{
+    band:'Middle School (Grades 6–8)',std:'MS-PS2-1 / MS-PS2-2',chip:'MS · PS2.A · Newton\'s Laws',
+    desc:'Motion is determined by the sum of forces ($\Sigma F$). If $\Sigma F \neq 0$, acceleration shifts. $a = \frac{\Sigma F}{m}$.',
+    slides:[
+      '<h3>⚙️ Vector Summation $\Sigma F$</h3><p>An object\'s total velocity changes purely based on net force vector totals: $\Sigma F = F_{right} - F_{left}$. If this value is completely zero, acceleration is absent.</p>',
+      '<h3>🏎️ Newton\'s Second Law</h3><p>Acceleration is linearly proportional to net vector force and inversely related to system mass: $$a = \frac{\Sigma F}{m}$$</p>',
+      '<h3>⚖️ Inertial Resistance</h3><p>Objects with greater mass possess structural inertia, demanding significantly more net force overhead to establish an identical change rate in motion speed metrics.</p>',
+      '<h3>📋 Experimental Isolation</h3><p>To establish causality configurations cleanly, strict operational variables control must be verified. Let\'s review this in the adaptive card track.</p>'
+    ],
+    hints:{1:'💡 Formula: a = ΣF/m. ΣF = F_right − F_left. If ΣF = 0, what is acceleration?',2:'💡 Step 1: ΣF = only force acting. Step 2: a = ΣF/m. Units: N÷kg = m/s².',3:'💡 Newton\'s 2nd Law: a = F/m. Net force direction = acceleration direction.',4:'💡 ΣF = F_right − F_left − friction. Then a = ΣF/m.',5:'💡 Independent variable: what you deliberately CHANGE. Which answer changes ONLY direction?'},
+    t1:{story:'A 10 kg box: Priya pushes RIGHT with 50 N. Marcus pushes LEFT with 50 N. ΣF = 50 − 50 = 0 N.',q:'When ΣF = 0 N on the 10 kg box, what is its acceleration? (MS-PS2-1)',ch:['a = 5 m/s² — each force accelerates it','a = 0 m/s² — zero net force = no acceleration','a = 10 m/s² — mass × force','a = 1 m/s² in a random direction'],correct:1,fb_ok:'✅ Correct! ΣF = 0 → a = ΣF/m = 0/10 = 0 m/s². Zero net force means no change in motion. (MS-PS2-1)',fb_bad:'❌ ΣF = 50 − 50 = 0 N. Apply a = ΣF/m = 0/10 = 0 m/s². Zero net force = zero acceleration!'},
+    t2:{story:'Only Priya pushes the 0.43 kg ball: 2.15 N to the right. Marcus applies 0 N.',q:'Using a = ΣF/m, what is the ball\'s acceleration? (MS-PS2-1)',ch:['a = 0 m/s² — one force isn\'t enough','a = 5 m/s² to the right','a = 2.15 m/s² to the right','a = 0.43 m/s² to the right'],correct:1,fb_ok:'✅ Correct! a = ΣF/m = 2.15 ÷ 0.43 = 5 m/s² to the right. Net force determines direction! (MS-PS2-1)',fb_bad:'❌ Use a = ΣF/m = 2.15 ÷ 0.43 = 5 m/s² rightward. Always divide force by mass!'},
+    t3:{wb:'📚 Word Bank: zero · non-zero · accelerates · stays still · Newton\'s 2nd Law · friction',s:{s1:{pre:'When ΣF on an object is',sel:['zero','non-zero'],ans:'zero',post:'the object stays still or moves at constant velocity.'},s2:{pre:'When ΣF is non-zero, the object',sel:['stays still','accelerates'],ans:'accelerates',post:'in the direction of the net force.'},s3:{pre:'The formula a = F/m is',sel:['Newton\'s 2nd Law','friction'],ans:'Newton\'s 2nd Law',post:'and links force, mass, and acceleration.'}}},
+    t4:{story:'Marcus pushes RIGHT with 80 N. Priya pushes LEFT with 50 N. Friction acts LEFT: 20 N. Box mass: 10 kg.',q:'ΣFₓ = 80 − 50 − 20 = ? N. Then a = ΣF/m = ? m/s² (MS-PS2-1)',ch:['ΣF = 10 N, a = 1 m/s² rightward','ΣF = 40 N, a = 4 m/s²','ΣF = 30 N, a = 3 m/s²','ΣF = 150 N, a = 15 m/s²'],correct:0,fb_ok:'✅ Correct! ΣFₓ = 80−50−20 = 10 N → a = 10/10 = 1 m/s² rightward.',fb_bad:'❌ Add signed forces: +80 (right) − 50 (left) − 20 (friction left) = 10 N right. a = 10/10 = 1 m/s² rightward.'},
+    t5:{q:'You want to investigate how force DIRECTION affects ball motion. Which plan satisfies MS-PS2-2?',ch:['Apply equal force in different directions to the same ball. Measure acceleration direction each time. Keep mass constant.','Change force direction AND ball mass each trial — more variables yield richer data.','Apply force in the SAME direction each trial, vary the magnitude. Measure resulting acceleration.','Observe a ball pushed by a partner and estimate the force direction from its motion.'],correct:0,fb_ok:'✅ This satisfies MS-PS2-2: one independent variable (direction), two controlled (magnitude, mass), measured outcome (acceleration direction).',fb_bad:'❌ MS-PS2-2 requires a controlled investigation. Only Answer A changes one variable (direction) while controlling all others.',why_c:'⚠️ Why not C? Answer C varies force MAGNITUDE in the same direction — testing the F vs. a relationship, not the effect of direction. It would satisfy a different research question: "How does force strength affect acceleration?" Confusing the independent variable means your data cannot answer the stated question. The experiment becomes invalid for the direction hypothesis.'}
+  },
+  HS:{
+    band:'High School (Grades 9–12)',std:'HS-PS2-1 / HS-PS2-2 / HS-PS2-3',chip:'HS · Vectors · Impulse · FBD',
+    desc:'Newton\'s 2nd Law as vectors: $\Sigma \vec{F} = m\vec{a}$. Impulse $J = F\Delta t = \Delta p = m\Delta v$. Free-body diagrams apply vector limits.',
+    slides:[
+      '<h3>📐 Multi-Dimensional Vector Spaces</h3><p>Macroscopic trajectories obey explicit vector coordinates: $$\Sigma \vec{F} = m\vec{a}$$ This requires resolving directional forces into independent Cartesian orthogonal planes ($X, Y$).</p>',
+      '<h3>💥 Impulse Momentum Theorem</h3><p>An applied vector force over an explicit time frame creates an impulse matrix, mapping directly to total systemic momentum differentials: $$J = \vec{F}\Delta t = \Delta \vec{p} = m\Delta \vec{v}$$</p>',
+      '<h3>🖼️ Free-Body Diagrams (FBD)</h3><p>Isolating point masses requires complete summation vectors mapping. Air friction bounds, normal reactions, and gravity fields must balance or trigger net acceleration arrays.</p>',
+      '<h3>🧪 Structural Integrity Validation</h3><p>We leverage empirical metrics to analyze experimental error thresholds. Proceed down to access the programmatic active task deck nodes.</p>'
+    ],
+    hints:{1:'💡 Vector sum: rightward = +, leftward = −. ΣFₓ = +120 + (−120) = ? Then a = ΣF/m.',2:'💡 Impulse-momentum: J = FΔt = mΔv. Find Δv first (v = J/m), then F = J/Δt.',3:'💡 Key formulas: ΣF=ma · J=FΔt=mΔv · free-body diagram shows ALL force vectors.',4:'💡 List every force with sign: Marcus(+), Priya(−), friction(−). ΣF = sum. a = ΣF/m.',5:'💡 HS-PS2-1 requires quantitative data. Which answer controls variables AND measures acceleration as a vector?'},
+    t1:{story:'25 kg box in equilibrium. Priya: 120 N rightward (+). Marcus: 120 N leftward (−). Friction: 0 N.',q:'ΣFₓ = (+120) + (−120) = ? N. What is acceleration? (HS-PS2-2)',ch:['ΣFₓ = 240 N, a = 9.6 m/s² — add magnitudes','ΣFₓ = 0 N, a = 0 m/s² — static equilibrium','ΣFₓ = 120 N, a = 4.8 m/s²','ΣFₓ = −120 N, a = −4.8 m/s² leftward'],correct:1,fb_ok:'✅ Correct! Vector sum: (+120)+(−120) = 0 N. a = 0/25 = 0 m/s². Static equilibrium — ΣF = 0. (HS-PS2-1/2)',fb_bad:'❌ Forces are vectors: +120 rightward + (−120) leftward = 0 N net. a = 0/25 = 0 m/s². Static equilibrium.'},
+    t2:{story:'0.43 kg ball at rest receives impulse J = 8.6 N·s rightward over Δt = 0.02 s.',q:'Using J = mΔv and F = J/Δt: find exit velocity v and average force F. (HS-PS2-2/3)',ch:['v = 20 m/s, F = 430 N — impulse-momentum theorem','v = 8.6 m/s, F = 0.43 N — confused units','v = 10 m/s, F = 215 N — halved incorrectly','v = 43 m/s, F = 4300 N — multiplied instead'],correct:0,fb_ok:'✅ Correct! v = J/m = 8.6/0.43 = 20 m/s. F = J/Δt = 8.6/0.02 = 430 N. Impulse-momentum theorem confirmed! (HS-PS2-3)',fb_bad:'❌ Step 1: v = J/m = 8.6÷0.43 = 20 m/s. Step 2: F = J/Δt = 8.6÷0.02 = 430 N. Don\'t confuse division direction!'},
+    t3:{wb:'📚 Word Bank: ΣF=ma · impulse · free-body diagram · momentum · equilibrium · vector',s:{s1:{pre:'Newton\'s 2nd Law in vector form:',sel:['ΣF=ma','impulse'],ans:'ΣF=ma',post:'where acceleration direction equals net force direction.'},s2:{pre:'The product FΔt equals the change in momentum Δp — this is called',sel:['impulse','equilibrium'],ans:'impulse',post:'and is used to analyze collisions and kicks.'},s3:{pre:'A diagram showing all force vectors on one object with magnitude and direction is a',sel:['free-body diagram','vector'],ans:'free-body diagram',post:'and is the first step in any Newton\'s Law problem.'}}},
+    t4:{story:'25 kg box. Marcus: +150 N (right). Priya: −90 N (left). Kinetic friction: −20 N (opposing rightward motion).',q:'ΣFₓ = 150 − 90 − 20 = ? N. a = ΣF/m = ? m/s² (HS-PS2-2)',ch:['ΣF = 40 N, a = 1.6 m/s² rightward','ΣF = 60 N, a = 2.4 m/s²','ΣF = 260 N, a = 10.4 m/s²','ΣF = 80 N, a = 3.2 m/s²'],correct:0,fb_ok:'✅ Correct! ΣFₓ = 150−90−20 = 40 N. a = 40/25 = 1.6 m/s² rightward. Friction always opposes motion direction. (HS-PS2-2)',fb_bad:'❌ ΣFₓ = (+150)+(−90)+(−20) = 40 N. a = 40÷25 = 1.6 m/s² rightward. Friction sign: always opposes motion (negative here).'},
+    t5:{q:'Verify Newton\'s 2nd Law by testing how force DIRECTION affects acceleration. Which design satisfies HS-PS2-1?',ch:['Apply known force vectors in different directions to a cart on frictionless track. Use motion sensor to measure acceleration vector. Control: same mass, same force magnitude. Plot F direction vs. a direction.','Apply different magnitudes in different directions simultaneously while changing mass.','Apply force in the SAME direction each trial but vary magnitude. Measure acceleration. Plot F vs. a at constant mass.','Observe a cart pushed by a partner. Estimate force from resulting motion.'],correct:0,fb_ok:'✅ This is rigorous HS-PS2-1 design: quantitative, controlled variables, vector measurement, data suitable for analysis supporting ΣF=ma.',fb_bad:'❌ HS-PS2-1 requires quantitative data analysis. Only Answer A controls variables, changes only direction, and measures acceleration as a vector.',why_c:'⚠️ Why not C? Answer C varies force MAGNITUDE in the same direction — a valid experiment for testing the F-proportionality of Newton\'s 2nd Law, but it tests a fundamentally different hypothesis. It cannot answer "How does force direction affect acceleration?" because direction never changes in C. At HS level, conflating the independent variable with a different variable is a critical experimental design error — the conclusion drawn from C\'s data would not support or refute the stated research question about direction.'}
+  }
+};
+
+/* ══════════ DATA PROPERTIES ══════════ */
+var profile={},dci={};
+var qs={1:{attempts:0,firstCorrect:false,time:0,points:0,seq:[],hintUsed:false,hintText:''},
+        2:{attempts:0,firstCorrect:false,time:0,points:0,seq:[],hintUsed:false,hintText:''},
+        3:{attempts:0,firstCorrect:false,time:0,points:0,seq:[],hintUsed:false,hintText:'',vocabCorrect:0},
+        4:{attempts:0,firstCorrect:false,time:0,points:0,seq:[],hintUsed:false,hintText:''},
+        5:{attempts:0,firstCorrect:false,time:0,points:0,seq:[],hintUsed:false,hintText:''}};
+var taskDone={1:false,2:false,3:false,4:false,5:false};
+var taskCorrect={1:false,2:false,3:false,4:false,5:false};
+var correctValues={};
+var timers={},timerStart={};
+var sessStart=Date.now(),sessInt;
+var currentXP=1000;
+var slideIdx=0;
+
+/* ══════════ INTERACTIVE SLIDERS RUNTIME ══════════ */
+function shuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}
+  return a;
+}
+
+function flashXP(delta){
+  var el=document.getElementById('xpFlash');
+  el.textContent=(delta>0?'+':'')+delta+' XP';
+  el.className='xp-flash show '+(delta>0?'pos':'neg');
+  setTimeout(function(){el.className='xp-flash';},1600);
+}
+function addXP(delta,reason){
+  currentXP=Math.max(0,currentXP+delta);
+  document.getElementById('xpBadge').textContent='⚡ XP: '+currentXP;
+  flashXP(delta);
+}
+
+/* ══════════ BACKEND WIRING ══════════
+   API_BASE/sessionId + these two helpers are the one real vertical slice
+   wired to the FastAPI backend (see learning_avatar/orchestrator/). Every
+   other piece of this UI (tasks 1-5, the theory slides, the SVG scenes)
+   is still static client-side content, same as it came in -- porting the
+   rest server-side, the way Newton's-laws lessons already were in the v4
+   app, is future work, not done here. */
+var API_BASE="";
+var sessionId=null;
+
+async function bootstrapSession(studentProfile){
+  try{
+    var res=await fetch(API_BASE+"/api/session",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({profile:studentProfile})
+    });
+    if(!res.ok)throw new Error("status "+res.status);
+    var data=await res.json();
+    sessionId=data.session_id;
+    return true;
+  }catch(e){
+    console.warn("Backend session bootstrap failed -- continuing in offline mode (static content only, no server-generated hints):",e);
+    sessionId=null;
+    return false;
+  }
+}
+
+/* ══════════ CORE PLATFORM INITIALIZATION ══════════ */
+function pickBand(grade,ability){
+  // Kindergarten has no corresponding "ability level" option in the modal,
+  // so grade stays authoritative for grade<=0.
+  if(grade<=0)return DCI.K;
+  // FIX: the original code collected `ability` in the onboarding modal but
+  // never read it again -- band selection was driven by grade alone, so a
+  // student marked "Middle School" ability still got Elementary content if
+  // their grade number said otherwise. Ability is the more direct signal of
+  // instructional register, so it now takes priority when set.
+  var byAbility={'Elementary':DCI.Elem,'Middle School':DCI.MS,'High School':DCI.HS,
+                  'College':DCI.HS,'PhD':DCI.HS}; // no dedicated College/PhD band yet -- HS is the closest available
+  if(ability&&byAbility[ability])return byAbility[ability];
+  return grade<=5?DCI.Elem:grade<=8?DCI.MS:DCI.HS;
+}
+
+async function startPlatform(){
+  var grade=parseInt(document.getElementById('pGrade').value)||0;
+  var ability=document.getElementById('pAbility').value;
+  var flowMode=document.getElementById('pFlow').value;
+  if(!ability){alert('Please select baseline ability level configuration.');return}
+  currentXP=parseInt(document.getElementById('pXP').value)||1000;
+
+  profile={
+    name:document.getElementById('pName').value.trim()||'Candidate_Node',
+    age:parseInt(document.getElementById('pAge').value)||10,
+    grade,ability,starting_xp:currentXP,flow_track:flowMode,
+    tiredness:parseInt(document.getElementById('pTired').value),
+    attention:parseInt(document.getElementById('pAttn').value),
+    stress:parseInt(document.getElementById('pStr').value),
+    motivation:parseInt(document.getElementById('pMotiv').value),
+    prior_knowledge:parseInt(document.getElementById('pPrior').value),
+    session_start:new Date().toISOString()
+  };
+
+  await bootstrapSession(profile); // failure is non-fatal -- see bootstrapSession's catch above
+
+  dci=pickBand(grade,ability);
+
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('lessonBody').style.display='block';
+  document.getElementById('hudName').textContent=profile.name;
+  document.getElementById('hudGrade').textContent=grade===0?'K':grade;
+  document.getElementById('xpBadge').textContent='⚡ XP: '+currentXP;
+
+  document.getElementById('gbanner').classList.add('show');
+  document.getElementById('gbtitle').textContent='📚 '+dci.band+' — Core Dynamics Engine';
+  document.getElementById('gbchip').textContent=dci.std;
+  document.getElementById('gbdesc').textContent=dci.desc;
+
+  sessInt=setInterval(function(){
+    var s=Math.floor((Date.now()-sessStart)/1000);
+    document.getElementById('hudClock').textContent=Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;
+  },1000);
+
+  renderAll();
+
+  if(profile.flow_track==='lesson'){
+    initSlideshow();
+  } else {
+    unlockTask(1);
+  }
+}
+
+/* ══════════ COGNITIVE THEORY SLIDE DECK FUNCTIONS ══════════ */
+function initSlideshow(){
+  slideIdx=0;
+  document.getElementById('theorySlideshow').style.display='block';
+  
+  // Render visual structural layout dots
+  var dotsContainer=document.getElementById('slDots');
+  dotsContainer.innerHTML='';
+  dci.slides.forEach(function(_,idx){
+    var dot=document.createElement('div');
+    dot.className='dot'+(idx===0?' active':'');
+    dotsContainer.appendChild(dot);
+  });
+  updateSlideUI();
+}
+
+function updateSlideUI(){
+  document.getElementById('slNum').textContent=(slideIdx+1)+' / '+dci.slides.length;
+  document.getElementById('slBodyText').innerHTML=dci.slides[slideIdx];
+  
+  // Manage structural selection states on navigation nodes
+  document.getElementById('slPrevBtn').style.visibility=(slideIdx===0)?'hidden':'visible';
+  
+  var nextBtn=document.getElementById('slNextBtn');
+  if(slideIdx===dci.slides.length-1){
+    nextBtn.textContent='Launch Activity Cards ›';
+    nextBtn.className='sl-btn action';
+  } else {
+    nextBtn.textContent='Next »';
+    nextBtn.className='sl-btn';
+  }
+
+  // Update dots indicator state tracking array 
+  var dots=document.querySelectorAll('.dot');
+  dots.forEach(function(dot,idx){
+    if(idx===slideIdx)dot.classList.add('active');
+    else dot.classList.remove('active');
+  });
+}
+
+function changeSlide(direction){
+  slideIdx+=direction;
+  if(slideIdx>=dci.slides.length){
+    // Exited slideshow structure bounds -> Unlock operational track activities array
+    document.getElementById('theorySlideshow').style.opacity='0.25';
+    document.getElementById('theorySlideshow').style.pointerEvents='none';
+    unlockTask(1);
+    return;
+  }
+  if(slideIdx<0)slideIdx=0;
+  updateSlideUI();
+}
+
+/* ══════════ STANDARD ADAPTIVE CORE PLATFORM LAB ENGINE ══════════ */
+function renderAll(){
+  renderMC(1,dci.t1);
+  renderMC(2,dci.t2);
+  renderT3();
+  renderMC(4,dci.t4);
+  renderMC(5,dci.t5);
+  
+  Object.keys(dci.hints).forEach(function(n){
+    var hb=document.getElementById('hbox'+n);
+    if(hb){
+      hb.innerHTML='<div class="htitle">💡 Accessible Target Hint Parameter</div>'+dci.hints[n]+'<div style="font-size:.7rem;color:#7C3AED;font-weight:800;margin-top:5px">Invoking operational hint costs −15 XP</div>';
+    }
+  });
+  ['t1story','t2story','t4story'].forEach(function(id){
+    var n=id[1];var t=dci['t'+n];
+    if(document.getElementById(id))document.getElementById(id).innerHTML='<strong>Environmental Array Vector:</strong> '+t.story;
+  });
+  ['t1q','t2q','t4q','t5q'].forEach(function(id){
+    var n=id[1];var t=dci['t'+n];
+    if(document.getElementById(id)&&t)document.getElementById(id).textContent=t.q;
+  });
+}
+
+function renderMC(taskNum,taskData,shuffled){
+  var div=document.getElementById('ch'+taskNum);
+  div.innerHTML='';
+  var choices=taskData.ch;
+  var correctText=choices[taskData.correct];
+  correctValues[taskNum]=correctText;
+  if(shuffled)choices=shuffle(choices);
+  var L=['A','B','C','D'];
+  choices.forEach(function(c,i){
+    var btn=document.createElement('button');
+    btn.className='cbtn'+(shuffled?' slide-in':'');
+    btn.innerHTML='<span class="ck">'+L[i]+'</span><span>'+c+'</span>';
+    btn.onclick=(function(txt){return function(){answerMC(taskNum,txt)}})(c);
+    div.appendChild(btn);
+  });
+}
+
+function renderT3(){
+  var wb=document.getElementById('t3wb');if(wb)wb.textContent=dci.t3.wb;
+  var d=dci.t3.s;var html='';
+  Object.keys(d).forEach(function(k){
+    var s=d[k];
+    var opts=s.sel.map(function(o){return'<option>'+o+'</option>'}).join('');
+    html+='<div class="sfill">'+s.pre+' <select class="bsel" id="'+k+'" onchange="chkBlanks()"><option value="">—</option>'+opts+'</select> '+(s.post||'')+'</div>';
+  });
+  var el=document.getElementById('t3sents');if(el)el.innerHTML=html;
+}
+
+async function showHint(n){
+  if(qs[n].hintUsed)return;
+  qs[n].hintUsed=true;
+  var staticHint=dci.hints[n]||'';
+  var hbtn=document.getElementById('hbtn'+n);
+  var hbox=document.getElementById('hbox'+n);
+  if(hbtn){hbtn.classList.add('used');hbtn.textContent='💡 Loading…';hbtn.disabled=true}
+
+  // Real vertical slice: ask the backend orchestrator (Router -> Policy ->
+  // LabModel-Worker -> LabModel-Critic, see orchestrator/graph.py) for a
+  // hint instead of only reading the pre-written string. If that fails for
+  // any reason (session never bootstrapped, MCP/LLM down, network), fall
+  // back to the static hint -- a hint is low-stakes enough that degrading
+  // silently-but-visibly is the right call here, unlike a full lesson.
+  var hintText=staticHint, source='static';
+  if(sessionId){
+    try{
+      var taskQuestion=(dci['t'+n]&&dci['t'+n].q)?dci['t'+n].q:'vocabulary fill-in-the-blank task';
+      var res=await fetch(API_BASE+"/api/session/"+sessionId+"/hint",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          task_number:n,
+          task_question:taskQuestion,
+          grade_band:dci.chip,
+          static_hint_fallback:staticHint
+        })
+      });
+      if(res.ok){
+        var data=await res.json();
+        if(data.hint_text){hintText=data.hint_text;source=data.source||'orchestrator'}
+      }
+    }catch(e){
+      console.warn('Hint orchestrator call failed, using static hint:',e);
+    }
+  }
+
+  qs[n].hintText=hintText;
+  if(hbtn){hbtn.textContent='💡 Hint Evaluated'}
+  if(hbox){
+    hbox.innerHTML='<div class="htitle">💡 Accessible Target Hint Parameter</div>'+hintText+
+      (source!=='static'?'<div style="font-size:.65rem;color:#7C3AED;font-weight:800;margin-top:4px">via orchestrator</div>':'')+
+      '<div style="font-size:.7rem;color:#7C3AED;font-weight:800;margin-top:5px">Invoking operational hint costs −15 XP</div>';
+    hbox.classList.add('show');
+  }
+  addXP(-15,'hint deployed');
+}
+
+function startTimer(n){
+  timerStart[n]=Date.now();
+  timers[n]=setInterval(function(){
+    var s=Math.floor((Date.now()-timerStart[n])/1000);
+    var el=document.getElementById('tmr'+n);
+    if(el){el.textContent='⏱ '+s+'s';el.className='tbadge'+(s>30?' slow':s>15?' warn':'')}
+  },1000);
+}
+function stopTimer(n){if(timers[n]){clearInterval(timers[n]);timers[n]=null}qs[n].time=Math.floor((Date.now()-timerStart[n])/1000)}
+function updateProg(t){document.getElementById('pf').style.width=(((t-1)/5)*100)+'%';document.getElementById('hudProg').textContent='Q'+t+'/5'}
+
+function unlockTask(n){
+  var el=document.getElementById('task'+n);
+  el.classList.remove('locked');el.classList.add('active');
+  startTimer(n);updateProg(n);
+  setTimeout(function(){el.scrollIntoView({behavior:'smooth',block:'start'})},160);
+}
+
+function switchToScene(scene){
+  if(scene===currentScene)return;
+  var svgA=document.getElementById('svgA');
+  var svgB=document.getElementById('svgB');
+  var label=document.getElementById('sceneLabel');
+  if(currentScene==='A')svgA.classList.add('scene-fade');
+  else svgB.classList.add('scene-fade');
+  setTimeout(function(){
+    if(scene==='B'){
+      svgA.style.display='none';svgA.classList.remove('scene-fade');
+      svgB.style.display='block';svgB.classList.add('scene-fade');
+      label.textContent='⚽ Scene B — Kinetic Track';
+      setTimeout(function(){svgB.classList.remove('scene-fade')},50);
+    } else {
+      svgB.style.display='none';svgB.classList.remove('scene-fade');
+      svgA.style.display='block';svgA.classList.add('scene-fade');
+      label.textContent='📦 Scene A — Static Equilibrium Equilibrium';
+      setTimeout(function(){svgA.classList.remove('scene-fade')},50);
+    }
+    currentScene=scene;
+  },350);
+}
+
+function answerMC(taskNum,chosenText){
+  if(taskDone[taskNum])return;
+  qs[taskNum].attempts++;qs[taskNum].seq.push(chosenText);
+  document.getElementById('att'+taskNum).textContent='Attempt '+qs[taskNum].attempts;
+  var btns=document.getElementById('ch'+taskNum).querySelectorAll('.cbtn');
+  btns.forEach(function(b){b.disabled=true});
+  var correctText=correctValues[taskNum];
+  var isOk=(chosenText===correctText);
+  btns.forEach(function(b){
+    var txt=b.querySelector('span:last-child').textContent;
+    if(txt===correctText)b.classList.add('correct');
+    else if(txt===chosenText&&!isOk)b.classList.add('wrong');
+  });
+  if(taskNum===1){document.getElementById('arrowsA').style.opacity='1';if(isOk){document.getElementById('boxGrp').classList.add('shake');setTimeout(function(){document.getElementById('boxRes').style.opacity='1'},700)}}
+  if(taskNum===2&&isOk){document.getElementById('bPA').style.opacity='1';document.getElementById('bPL').style.opacity='1';setTimeout(function(){var bg=document.getElementById('ballGrp');bg.style.transition='transform 1.1s ease-out';bg.style.transform='translateX(130px)';setTimeout(function(){document.getElementById('bFA').style.opacity='1';document.getElementById('bFL').style.opacity='1';document.getElementById('ballRes').style.opacity='1'},500)},350)}
+  if(taskNum===4&&isOk){setTimeout(function(){var g=document.getElementById('boxGrp');g.style.transition='transform .9s ease-out';g.style.transform='translateX(-45px)'},300)}
+  
+  var td=dci['t'+taskNum];
+  var showWhyC=(taskNum===5&&!isOk&&chosenText.indexOf('SAME direction')>=0&&td.why_c);
+  
+  var el=document.getElementById('fb'+taskNum);
+  el.className='fb show '+(isOk?'ok':'bad');
+  el.innerHTML='<strong></strong>'+(isOk?td.fb_ok:td.fb_bad)+(showWhyC?'<div class="why-not">'+td.why_c+'</div>':'');
+
+  if(isOk){
+    taskDone[taskNum]=true;taskCorrect[taskNum]=true;
+    qs[taskNum].firstCorrect=(qs[taskNum].attempts===1);
+    qs[taskNum].points=Math.max(0,([0,100,100,120,100,80][taskNum])-Math.min(qs[taskNum].attempts-1,3)*20);
+    addXP(60,'correct array processing node');
+    stopTimer(taskNum);
+    document.getElementById('task'+taskNum).classList.add('done-ok');
+    document.getElementById('next'+taskNum).classList.add('show');
+    document.getElementById('retry'+taskNum).classList.remove('show');
+  } else {
+    addXP(-30,'malformed vector execution path');
+    document.getElementById('task'+taskNum).classList.add('done-bad');
+    document.getElementById('retry'+taskNum).classList.add('show');
+  }
+}
+
+function chkBlanks(){
+  var all=Object.keys(dci.t3.s).every(function(k){var el=document.getElementById(k);return el&&el.value!==''});
+  document.getElementById('chk3').style.opacity=all?'1':'.5';
+}
+function checkT3(){
+  if(taskDone[3])return;
+  qs[3].attempts++;
+  var d=dci.t3.s;var correct=0;
+  Object.keys(d).forEach(function(k){
+    var sel=document.getElementById(k);sel.disabled=true;
+    if(sel.value===d[k].ans){sel.classList.add('correct');correct++}else sel.classList.add('wrong');
+  });
+  qs[3].vocabCorrect=correct;
+  var isOk=(correct===Object.keys(d).length);
+  document.getElementById('fb3').className='fb show '+(isOk?'ok':'bad');
+  document.getElementById('fb3').textContent=isOk?'✅ Verification sequence valid. Syntax parameters locked.':'❌ Syntactic evaluation parameters mismatch context constraints.';
+  if(isOk){
+    taskDone[3]=true;taskCorrect[3]=true;stopTimer(3);
+    document.getElementById('task3').classList.add('done-ok');
+    document.getElementById('next3').classList.add('show');
+  } else {
+    document.getElementById('retry3').classList.add('show');
+  }
+}
+
+function retryTask(n){
+  taskDone[n]=false;document.getElementById('task'+n).className='tcard active';
+  document.getElementById('fb'+n).className='fb';
+  document.getElementById('retry'+n).classList.remove('show');
+  if(n!==3) renderMC(n,dci['t'+n],true);
+  else {
+    Object.keys(dci.t3.s).forEach(function(k){var el=document.getElementById(k);el.disabled=false;el.className='bsel';el.value=''});
+    document.getElementById('chk3').classList.add('show');
+  }
+}
+
+function goNext(task){
+  if(task<5)unlockTask(task+1);
+  if(task===1)switchToScene('B');
+  if(task===3)switchToScene('A');
+}
+
+function showResults(){
+  Object.keys(timers).forEach(function(k){if(timers[k])clearInterval(timers[k])});
+  clearInterval(sessInt);
+  document.getElementById('rPanel').classList.add('show');
+  document.getElementById('activityTrackContainer').style.display='none';
+  if(document.getElementById('theorySlideshow')) document.getElementById('theorySlideshow').style.display='none';
+  
+  var out=computeOutputMetrics();
+  document.getElementById('jsonOut').textContent=JSON.stringify({input:profile,output:out},null,2);
+  buildDisplayTables(out);
+}
+
+function computeOutputMetrics(){
+  var totalPts=Object.keys(qs).reduce(function(s,k){return s+(qs[k].points||0)},0);
+  var correctCount=Object.keys(taskCorrect).filter(function(k){return taskCorrect[k]}).length;
+  return {
+    session_status:'Processed_Complete',
+    score:correctCount,
+    total_yield_points:totalPts,
+    final_xp:currentXP,
+    math_skill_level:Math.round(800+totalPts*2.4+(profile.attention*40))
+  };
+}
+
+function buildDisplayTables(out){
+  var it=document.getElementById('inTable');
+  it.innerHTML='<tr><th>Parameter Field</th><th>Active Value State</th></tr>';
+  Object.keys(profile).forEach(function(k){it.innerHTML+='<tr><td>'+k+'</td><td>'+profile[k]+'</td></tr>'});
+  document.getElementById('stdApplied').textContent=dci.band+' -> Compliance Target Vector: '+dci.std;
+}
+
+function retryAll(){location.reload()}
+function newStudent(){location.reload()}
+</script>
+</body>
+</html>
