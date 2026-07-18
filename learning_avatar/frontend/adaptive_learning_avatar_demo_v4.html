@@ -2013,7 +2013,20 @@
             <div class="metric"><span>Laws cleared</span><strong>${Math.min(state.questProgress.lawIndex, 3)} / 3</strong></div>
           </div>
           <pre class="json-panel" style="margin-top:18px">${JSON.stringify(snapshot, null, 2)}</pre>
-          <div class="option-grid">
+
+          <!-- PDF Ingestion Panel -->
+          <div style="margin-top:28px;padding:16px;background:var(--bg1,#1a1a2e);border-radius:10px;border:1px solid var(--border,#333)">
+            <div class="kicker" style="margin-bottom:8px">PDF Content Library</div>
+            <p style="margin:0 0 12px;font-size:0.85rem;opacity:0.75">Upload a PDF to add it to the learning content library. Parsing, chunking, and embedding run on the server.</p>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <input type="file" id="pdfUploadInput" accept=".pdf" style="font-size:0.85rem;color:inherit">
+              <button id="pdfUploadBtn" class="ghost-button" style="padding:8px 16px">Upload &amp; Ingest</button>
+            </div>
+            <div id="pdfUploadStatus" style="margin-top:10px;font-size:0.83rem;min-height:20px;opacity:0.8"></div>
+            <div id="pdfCardBrowser" style="margin-top:16px"></div>
+          </div>
+
+          <div class="option-grid" style="margin-top:20px">
             <button class="option" data-action="Restart Demo">Restart Demo</button>
             <button class="option" data-action="Back to Quest Map">Back to Quest Map</button>
           </div>
@@ -2025,6 +2038,59 @@
         "Restart Demo": () => restart(),
         "Back to Quest Map": () => setScreen("quest")
       });
+
+      // ── PDF upload wiring ─────────────────────────────────────────────────
+      const pdfUploadBtn = document.getElementById("pdfUploadBtn");
+      const pdfUploadInput = document.getElementById("pdfUploadInput");
+      const pdfUploadStatus = document.getElementById("pdfUploadStatus");
+      const pdfCardBrowser = document.getElementById("pdfCardBrowser");
+
+      if (pdfUploadBtn) {
+        pdfUploadBtn.addEventListener("click", async () => {
+          const file = pdfUploadInput.files[0];
+          if (!file) { pdfUploadStatus.textContent = "Select a PDF first."; return; }
+
+          pdfUploadStatus.textContent = "⏳ Uploading and ingesting… (parsing + embedding may take a minute)";
+          pdfUploadBtn.disabled = true;
+
+          const form = new FormData();
+          form.append("file", file);
+
+          try {
+            const res = await fetch("/api/ingest", { method: "POST", body: form });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              pdfUploadStatus.textContent = `❌ Failed: ${err.detail || res.status}`;
+              return;
+            }
+            const data = await res.json();
+            pdfUploadStatus.textContent =
+              `✅ Ingested ${data.filename} — ${data.chunk_count} chunks, ${data.card_count} cards, ${data.link_count} links`;
+
+            // Fetch and show first 5 quiz cards
+            const cardsRes = await fetch(`/api/ingest/${data.ingestion_id}/cards?type=quiz`);
+            if (cardsRes.ok) {
+              const cards = await cardsRes.json();
+              if (cards.length > 0) {
+                pdfCardBrowser.innerHTML = `
+                  <div class="kicker" style="margin:12px 0 6px">Quiz cards from PDF</div>
+                  ${cards.slice(0, 5).map(c => `
+                    <div style="background:var(--bg0,#0d0d1a);border-radius:8px;padding:12px;margin-bottom:8px">
+                      <strong style="font-size:0.85rem">${c.title}</strong>
+                      <p style="margin:4px 0;font-size:0.8rem;opacity:0.75">${c.body}</p>
+                      ${c.quiz ? `<p style="font-size:0.78rem;opacity:0.6">Q: ${c.quiz.question}</p>` : ""}
+                    </div>
+                  `).join("")}
+                `;
+              }
+            }
+          } catch (e) {
+            pdfUploadStatus.textContent = `❌ Network error: ${e.message}`;
+          } finally {
+            pdfUploadBtn.disabled = false;
+          }
+        });
+      }
     }
 
     // ---------------------------------------------------------------------

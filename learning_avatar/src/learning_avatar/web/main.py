@@ -46,6 +46,10 @@ from learning_avatar.mcp.client import MCPServerUnavailableError
 
 app = FastAPI(title="Learning Avatar — Agentic Backend")
 
+# PDF ingestion routes (Phase 1–7)
+from learning_avatar.web.ingest_routes import router as ingest_router  # noqa: E402
+app.include_router(ingest_router)
+
 
 def _require_session(session_id: str) -> SessionState:
     session = get_session(session_id)

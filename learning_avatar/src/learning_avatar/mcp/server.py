@@ -59,6 +59,50 @@ def get_concept_definition(concept_id: str) -> dict:
     return {"found": definition is not None, "definition": definition}
 
 
+@mcp.tool()
+def find_related_chunks(query_text: str, top_k: int = 5) -> dict:
+    """Search the PDF ingestion store for chunks semantically related to
+    query_text. Returns the top_k most similar chunks by cosine distance
+    over Jina embeddings. Returns {"found": false, "chunks": []} when the
+    store is empty or embeddings haven't been generated yet."""
+    try:
+        from learning_avatar.config import settings
+        from pdf_ingestion import store as pdf_store, embedder
+
+        pdf_store.configure(settings.pdf_db_path)
+
+        # Embed query text (reuse same Jina model)
+        class _Q:
+            text = query_text
+            context_prefix = ""
+            context_suffix = ""
+
+        q_vec = embedder.embed(_Q())
+        similar = pdf_store.find_top_k_similar(q_vec, top_k=top_k)
+
+        # Build chunk_id → Chunk lookup from embedded chunks
+        all_embedded = pdf_store.get_all_chunks_with_embeddings()
+        chunk_map = {c.chunk_id: c for c, _ in all_embedded}
+
+        _SUPPORTS = 0.70
+        results = []
+        for chunk_id, score in similar:
+            if score < _SUPPORTS or chunk_id not in chunk_map:
+                continue
+            c = chunk_map[chunk_id]
+            results.append({
+                "chunk_id": c.chunk_id,
+                "text": c.text,
+                "heading_path": c.heading_path,
+                "page_start": c.page_start,
+                "confidence": round(score, 4),
+            })
+
+        return {"found": len(results) > 0, "chunks": results}
+    except Exception as exc:
+        return {"found": False, "chunks": [], "error": str(exc)}
+
+
 def main():
     """Entry point for `uv run learning-avatar-mcp-server` (see
     pyproject.toml [project.scripts]). Runs as a persistent process over

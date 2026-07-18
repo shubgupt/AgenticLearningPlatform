@@ -65,6 +65,19 @@ async def fetch_concept_definition(concept_id: str) -> dict | None:
         return payload["definition"] if payload and payload.get("found") else None
 
 
+async def fetch_related_chunks(query_text: str, top_k: int = 5) -> list[dict]:
+    """Search PDF ingestion store for chunks related to query_text.
+    Returns [] when no embeddings exist yet — callers should treat this as
+    a cache miss (fall through to LLM generation) rather than an error."""
+    async with _session() as session:
+        result = await session.call_tool(
+            "find_related_chunks",
+            {"query_text": query_text, "top_k": top_k},
+        )
+        payload = _first_json_payload(result)
+        return payload["chunks"] if payload and payload.get("found") else []
+
+
 def _first_json_payload(call_tool_result) -> dict | None:
     """MCP tool results come back as a list of content blocks; FastMCP
     returns structured tool output as JSON text in the first block."""

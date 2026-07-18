@@ -55,7 +55,7 @@ class LessonScreen(BaseModel):
 
 class LessonResponse(BaseModel):
     record: LessonScreen
-    content_source: Literal["library", "generated"]
+    content_source: Literal["library", "generated", "pdf"]
 
 
 # --- QuizItem (Assessment Agent output) -------------------------------------

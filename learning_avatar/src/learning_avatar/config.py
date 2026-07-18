@@ -67,6 +67,10 @@ class Settings:
     mcp_server_url: str = f"http://{mcp_host}:{mcp_port}/mcp"
 
     db_path: str = os.getenv("DB_PATH", _yaml_get("storage", "db_path", default="sessions.db"))
+    pdf_db_path: str = os.getenv("PDF_DB_PATH", _yaml_get("storage", "pdf_db_path", default="pdf_store.db"))
+
+    ollama_base_url: str = _yaml_get("ollama", "base_url", default="http://localhost:11434/v1")
+    ollama_model: str = _yaml_get("ollama", "model", default="llama3.2")
 
     # --- filesystem locations, computed once, used everywhere ---
     project_root: Path = _PROJECT_ROOT
