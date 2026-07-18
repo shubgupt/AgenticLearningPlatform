@@ -189,7 +189,7 @@ def render_dashboard_ui():
     </body>
     </html>
     """
-return render_template_string(html_template, state=tutor_ui_state)
+    return render_template_string(html_template, state=tutor_ui_state)
 
 @app.route('/mcp', methods=['POST'])
 def mcp_endpoint():
