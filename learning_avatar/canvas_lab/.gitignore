@@ -1,0 +1,19 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Secrets (LLM_BASE_URL / LLM_API_KEY / LLM_MODEL etc.)
+.env
+
+# Local SQLite database (lesson generation pipeline)
+lessons.db
+
+# Test cache
+.pytest_cache/

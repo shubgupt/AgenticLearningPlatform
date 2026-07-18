@@ -1,0 +1,15 @@
+{
+  "name": "socratic-hybrid-canvas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local visual prototype of the Socratic Hybrid Canvas — dual-layered interactive lesson viewer. Frontend is CDN-based (Tailwind Play CDN + Alpine.js); no bundler or build step required. This file is a mock manifest for editor tooling only.",
+  "scripts": {
+    "start": "uvicorn main:app --reload",
+    "dev": "uvicorn main:app --reload"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "python": ">=3.9"
+  }
+}

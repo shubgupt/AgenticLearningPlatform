@@ -27,7 +27,9 @@ class OpenAILLMClient(LLMClient):
 
     def __init__(self):
         import openai  # local import on purpose, see docstring above
-        self._client = openai.AsyncOpenAI(api_key=settings.openai_api_key)
+        # base_url=None means "use the SDK's own default" (real OpenAI) --
+        # unchanged behavior unless LLM_BASE_URL is set in config.
+        self._client = openai.AsyncOpenAI(api_key=settings.openai_api_key, base_url=settings.llm_base_url)
 
     async def complete(self, system_prompt: str, user_message: str, model: str) -> str:
         response = await self._client.chat.completions.create(

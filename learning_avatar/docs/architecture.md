@@ -148,3 +148,40 @@ flowchart TB
   validates against it at the HTTP boundary, agents validate against it
   before returning, and the frontend's JavaScript objects are shaped to
   match it. A malformed lesson can't silently reach a student.
+
+## `canvas_lab/`: an independent third surface, deliberately not merged in
+
+`canvas_lab/` is a separate project living as a sibling directory, added
+whole rather than integrated — its own `pyproject.toml`/`uv.lock`/`.venv`,
+its own port (`:8000`), its own SQLite file, its own frontend. It was kept
+fully separate on purpose rather than reconciled with anything above:
+
+```mermaid
+flowchart LR
+    subgraph CL[canvas_lab -- separate process, separate schema]
+        UI3[Alpine.js frontend<br/>static/index.html] --> APP[FastAPI app<br/>canvas_lab/main.py]
+        APP --> PIPE[generate -> validate -> critique<br/>pipeline.py]
+        PIPE --> DB2[(canvas_lab/lessons.db<br/>students, lesson_requests,<br/>generated_lessons, llm_call_trace)]
+    end
+```
+
+- **Content shape doesn't match.** This app's unit of content is a single
+  `LessonScreen` (`hook`/`sandbox`/`concept_screen`/`diagnostic`).
+  `canvas_lab`'s is a step array where each step declares a `content_type`
+  (`interactive_scene`/`slideshow`/`story`) and an `evaluation.type`
+  (`multiple_choice`/`free_text`/`dropdown`), rendered by one generic
+  engine. Neither maps onto the other without a translation layer that
+  doesn't exist yet — see `canvas_lab/docs/llm-lesson-generation-spec.md`
+  for the full design.
+- **No shared state.** `canvas_lab/lessons.db` (a request/cache/trace
+  schema keyed by skill+modality) is unrelated to `core/state_store.py`'s
+  `sessions` table (one JSON blob per session).
+- **Nothing above was changed to accommodate it** — Root/Teaching/
+  Assessment agents, the MCP server, `orchestrator/graph.py`, and both
+  existing frontends are exactly as they were before `canvas_lab/` arrived.
+  The only touch outside `canvas_lab/` itself is this doc section, the
+  README pointer, and one `.gitignore` line.
+
+If these two are ever unified, that's real design work — picking one
+content schema and porting the other's renderer or generator to it — not
+something to do implicitly while adding a directory.

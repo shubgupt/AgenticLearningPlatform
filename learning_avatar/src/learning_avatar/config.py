@@ -47,6 +47,10 @@ class Settings:
     # --- everything else (config.yaml, with env var override, with a
     #     hardcoded default so the app runs out of the box) ---
     llm_mode: str = os.getenv("LLM_MODE", _yaml_get("llm", "mode", default="mock"))
+    # Unset by default -- OpenAILLMClient falls back to the SDK's own default
+    # (real OpenAI) exactly as before. Set this to point at any
+    # OpenAI-compatible endpoint (e.g. a local/lab vLLM server) instead.
+    llm_base_url: str | None = os.getenv("LLM_BASE_URL", _yaml_get("llm", "base_url", default=None))
     teaching_agent_model: str = os.getenv(
         "TEACHING_AGENT_MODEL", _yaml_get("llm", "teaching_agent_model", default="gpt-4o-mini")
     )

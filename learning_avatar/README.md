@@ -53,6 +53,23 @@ uv sync --extra dev
 uv run pytest -v
 ```
 
+## Optional: `canvas_lab/` (independent third surface)
+
+`canvas_lab/` is a self-contained sibling project — a dual-layered
+interactive lesson canvas (Alpine.js frontend, FastAPI backend) with its
+own LLM generate → validate → critique pipeline for on-the-fly lessons,
+cached in its own SQLite file. It does not share content schema, session
+state, or a database with the rest of this app — it's a separate service
+you can run alongside the main app and the MCP server, not a replacement
+for either. See `canvas_lab/README.md` and
+`canvas_lab/docs/llm-lesson-generation-spec.md` for its own architecture.
+
+```bash
+cd canvas_lab
+uv sync
+uv run uvicorn main:app --reload   # serves on :8000, clear of :8100/:9000
+```
+
 ## Notes
 
 - Mock mode works without a live API key.

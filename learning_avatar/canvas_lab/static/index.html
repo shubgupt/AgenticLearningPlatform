@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Socratic Hybrid Canvas</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="/static/app.js?v=2"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<style>
+  [x-cloak] { display: none !important; }
+
+  body {
+    background: linear-gradient(180deg, #eef9f6 0%, #ffffff 55%);
+    min-height: 100vh;
+  }
+
+  .target-zone {
+    position: absolute;
+    border: 2px solid rgba(0, 168, 232, 0.85);
+    background: rgba(0, 168, 232, 0.14);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  }
+  .target-zone:hover {
+    background: rgba(0, 168, 232, 0.28);
+    box-shadow: 0 0 0 3px rgba(0, 168, 232, 0.3);
+    transform: scale(1.02);
+  }
+  .target-zone .zone-label {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 600;
+    color: #063a52;
+    background: #e0f4ff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  .target-zone:hover .zone-label { opacity: 1; }
+
+  .target-zone.has-prop {
+    border-color: rgba(0, 168, 232, 0.45);
+    background: transparent;
+  }
+  .target-zone.has-prop:hover {
+    background: rgba(0, 168, 232, 0.1);
+  }
+  .prop-sprite {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,0.25));
+  }
+
+  .option-card {
+    background: #f8fafc;
+    transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  }
+  .option-card:hover:not(.locked) {
+    transform: translateX(4px);
+    border-color: #00a8e8;
+    background: #e0f4ff;
+    box-shadow: 0 2px 8px rgba(0, 168, 232, 0.15);
+  }
+  .option-card.correct {
+    border-color: #22c55e !important;
+    background: #ecfdf5 !important;
+  }
+  .option-card.incorrect {
+    border-color: #ef4444 !important;
+    background: #fef2f2 !important;
+  }
+
+  .status-pill {
+    background: #e0f4ff;
+    color: #036280;
+    border: 1px solid rgba(0, 168, 232, 0.35);
+  }
+
+  .char-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    background: #f8fafc;
+  }
+  .char-avatar:hover { transform: scale(1.08); }
+  .char-avatar.selected {
+    border-color: #00a8e8;
+    box-shadow: 0 0 0 3px rgba(0, 168, 232, 0.25);
+  }
+
+  .force-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    background: #d6eefb;
+    outline: none;
+  }
+  .force-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: #00a8e8;
+    border: 2px solid white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    cursor: pointer;
+  }
+  .force-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: #00a8e8;
+    border: 2px solid white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    cursor: pointer;
+  }
+
+  .ball-wrap {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    transition: left 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+  }
+
+  .char-sprite {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    transition: left 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+  }
+
+  .pastel-btn {
+    background: #e0f4ff;
+    color: #1e3a5f;
+    border: 1px solid #b6e6fa;
+    transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  }
+  .pastel-btn:hover {
+    background: #c9edfb;
+    box-shadow: 0 2px 8px rgba(0, 168, 232, 0.2);
+  }
+  .pastel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .eval-input {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .eval-input:focus { outline: none; border-color: #00a8e8; background: #e0f4ff; }
+  .eval-input.wrong { border-color: #ef4444 !important; background: #fef2f2 !important; }
+
+  .scenario-box {
+    background: #e0f4ff;
+    border-left: 3px solid #00a8e8;
+  }
+
+  .standards-badge {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+  }
+
+  @keyframes modal-pop {
+    0% { opacity: 0; transform: scale(0.85); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .modal-pop { animation: modal-pop 0.2s ease-out; }
+
+  @keyframes xp-bump {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+  }
+  .xp-bump { animation: xp-bump 0.4s ease; }
+
+  .listening-pulse {
+    animation: pulse-ring 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  @keyframes pulse-ring {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+    50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  }
+</style>
+</head>
+<body class="text-slate-800" x-data="canvasApp()" x-init="init()" x-cloak>
+
+  <!-- ===================== HEADER ===================== -->
+  <header
+    class="w-full px-6 py-3 flex items-center justify-between shadow-md sticky top-0 z-30"
+    style="background: linear-gradient(135deg, #3b1e7c, #4c2c96);"
+  >
+    <!-- Left: user profile (JSON-driven) -->
+    <div class="flex items-center gap-3 flex-1">
+      <div class="w-10 h-10 rounded-full bg-white/15 border border-white/25 flex items-center justify-center font-bold text-lg text-white">
+        <span x-text="lesson?.user_profile?.avatar || '🎓'"></span>
+      </div>
+      <div>
+        <p class="font-semibold leading-tight text-white" x-text="lesson?.user_profile?.name || '...'"></p>
+        <p class="text-xs text-indigo-200 leading-tight" x-text="lesson?.user_profile?.grade || ''"></p>
+      </div>
+    </div>
+
+    <!-- Center: current lab/lesson title -->
+    <div class="flex-1 text-center hidden sm:block">
+      <p class="text-[10px] uppercase tracking-widest text-indigo-300">Lab Session</p>
+      <h1 class="font-bold text-white text-lg leading-tight" x-text="lesson?.topic || 'Loading…'"></h1>
+    </div>
+
+    <!-- Right: status indicators -->
+    <div class="flex-1 flex items-center justify-end gap-2.5">
+      <!-- Question progression -->
+      <div class="status-pill flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold">
+        <span>Q<span x-text="currentStepIndex + 1"></span>/<span x-text="lesson?.total_steps"></span></span>
+      </div>
+
+      <!-- Timer -->
+      <div class="status-pill flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-sm">
+        <span>⏱</span>
+        <span x-text="formattedTime"></span>
+      </div>
+
+      <!-- XP bubble -->
+      <div class="status-pill flex items-center gap-1.5 rounded-full px-3 py-1.5">
+        <span class="text-amber-500">✦</span>
+        <span class="font-mono font-bold text-sm" :class="{'xp-bump': xpBumped}" x-text="xp + ' XP'"></span>
+      </div>
+
+      <!-- Generate a custom lesson -->
+      <button
+        x-show="!loading"
+        @click="view === 'request' ? closeRequestForm() : openRequestForm()"
+        class="pastel-btn text-sm font-semibold px-3 py-1.5 rounded-full transition-colors">
+        <span x-text="view === 'request' ? '← Back to Lesson' : '✨ Generate Custom Lesson'"></span>
+      </button>
+
+      <!-- Abort & Restart -->
+      <button
+        @click="abortAndRestart()"
+        class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white text-sm font-semibold px-3 py-1.5 rounded-full transition-colors shadow-sm">
+        Abort &amp; Restart
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================== LOADING STATE ===================== -->
+  <div x-show="loading" class="flex flex-col items-center justify-center h-[80vh] gap-4">
+    <div class="w-12 h-12 border-4 rounded-full animate-spin" style="border-color:#00a8e8; border-top-color:transparent;"></div>
+    <p class="text-slate-500 text-sm">Prefetching lesson module…</p>
+  </div>
+
+  <!-- ===================== GENERATE-A-CUSTOM-LESSON VIEW ===================== -->
+  <div x-show="!loading && view === 'request'" x-cloak class="max-w-lg mx-auto p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mt-6">
+
+      <template x-if="!requestStatus || requestStatus === 'failed'">
+        <div class="flex flex-col gap-3">
+          <h2 class="text-lg font-bold text-slate-800">Generate a Custom Lesson</h2>
+          <p class="text-sm text-slate-500 -mt-2">Describe what you want to learn — an LLM will draft it, validate it, and have a critic review it before it's shown to you.</p>
+
+          <label class="text-xs font-semibold text-slate-500">What should the lesson teach?</label>
+          <input type="text" class="eval-input rounded-lg px-3 py-2 text-sm" placeholder="e.g. Use a pizza slices example to explain vector offsets"
+                 x-model="requestForm.skill" />
+
+          <label class="text-xs font-semibold text-slate-500">Modality</label>
+          <select class="eval-input rounded-lg px-3 py-2 text-sm" x-model="requestForm.modality">
+            <template x-for="m in modalityOptions" :key="m">
+              <option :value="m" x-text="m"></option>
+            </template>
+          </select>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-semibold text-slate-500">Your name</label>
+              <input type="text" class="eval-input rounded-lg px-3 py-2 text-sm w-full" placeholder="Alex" x-model="requestForm.name" />
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500">Grade</label>
+              <input type="text" class="eval-input rounded-lg px-3 py-2 text-sm w-full" placeholder="Gr 7" x-model="requestForm.grade" />
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500">Age</label>
+              <input type="number" class="eval-input rounded-lg px-3 py-2 text-sm w-full" placeholder="12" x-model="requestForm.age" />
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500">Favorite sport</label>
+              <input type="text" class="eval-input rounded-lg px-3 py-2 text-sm w-full" placeholder="soccer" x-model="requestForm.favorite_sport" />
+            </div>
+          </div>
+
+          <p x-show="requestStatus === 'failed'" class="text-xs text-red-500" x-text="requestError"></p>
+
+          <button
+            class="pastel-btn text-sm font-bold px-4 py-2 rounded-full mt-2"
+            :disabled="!requestForm.skill"
+            @click="submitLessonRequest()">
+            Generate Lesson
+          </button>
+        </div>
+      </template>
+
+      <template x-if="requestStatus === 'pending' || requestStatus === 'generating'">
+        <div class="flex flex-col items-center gap-4 py-8">
+          <div class="w-10 h-10 border-4 rounded-full animate-spin" style="border-color:#00a8e8; border-top-color:transparent;"></div>
+          <p class="text-slate-600 text-sm font-medium">Generating your lesson — this can take up to 30 seconds…</p>
+          <p class="text-slate-400 text-xs">A generator drafts it, then a critic reviews it for relevance and safety before it's shown to you.</p>
+        </div>
+      </template>
+
+    </div>
+  </div>
+
+  <!-- ===================== MAIN WORKSPACE ===================== -->
+  <main x-show="!loading && view === 'canvas'" class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 max-w-7xl mx-auto">
+
+    <!-- ============ LEFT PANE: CANVAS (content-type driven) ============ -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+      <div class="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-slate-500">Visual Canvas</h2>
+        <span class="text-xs text-slate-400 font-mono">
+          Step <span x-text="currentStepIndex + 1"></span> / <span x-text="lesson?.total_steps"></span>
+        </span>
+      </div>
+
+      <div class="relative w-full aspect-[16/9] bg-slate-100" x-ref="canvasWrapper">
+
+        <!-- ===== interactive_scene ===== -->
+        <template x-if="currentStep?.content_type === 'interactive_scene'">
+          <div class="absolute inset-0">
+            <img
+              :src="resolveAsset(currentStep?.scene?.background)"
+              alt="Lesson scene"
+              class="absolute inset-0 w-full h-full object-cover select-none"
+              draggable="false"
+            />
+
+            <!-- Character picker (lesson-level library, prefetched) -->
+            <template x-if="currentStep?.scene?.uses_character_picker">
+              <div class="absolute top-2 left-2 flex gap-1.5 bg-white/85 rounded-full px-2 py-1.5 shadow-sm">
+                <template x-for="c in lesson.character_library" :key="c.id">
+                  <button
+                    class="char-avatar"
+                    :class="{ selected: selectedCharacterId === c.id }"
+                    :title="c.label"
+                    @click="selectCharacter(c)"
+                  >
+                    <svg viewBox="0 0 24 24" width="22" height="22">
+                      <circle cx="12" cy="7" r="4" :fill="c.trim_color" />
+                      <rect x="6" y="12" width="12" height="9" rx="3" :fill="c.kit_color" />
+                    </svg>
+                  </button>
+                </template>
+              </div>
+            </template>
+
+            <!-- Net-force readout (shown when the scene exposes both slider ids) -->
+            <template x-if="hasNetForceReadout">
+              <div class="absolute top-2 right-2 status-pill rounded-full px-3 py-1.5 text-xs font-semibold">
+                <span x-text="netForceReadout"></span>
+              </div>
+            </template>
+
+            <!-- Scene objects: characters, ball, click zones -->
+            <div class="absolute inset-0">
+              <template x-for="obj in (currentStep?.scene?.objects || [])" :key="obj.id">
+                <template x-if="obj.kind === 'character'">
+                  <svg class="char-sprite" :style="`left:${getObjectPos(obj.id).x}%; top:${getObjectPos(obj.id).y}%;`"
+                       width="54" height="70" viewBox="0 0 54 70"
+                       :transform-origin="'center'">
+                    <g :transform="getObjectPos(obj.id).x > 50 ? 'scale(-1,1) translate(-54,0)' : ''">
+                      <circle cx="27" cy="14" r="11" :fill="characterForObject(obj).trim_color" />
+                      <rect x="10" y="28" width="34" height="32" rx="8" :fill="characterForObject(obj).kit_color" />
+                      <rect x="6" y="52" width="16" height="9" rx="4" :fill="characterForObject(obj).trim_color" transform="rotate(18 14 56)" />
+                    </g>
+                  </svg>
+                </template>
+              </template>
+
+              <!-- Force arrows (custom SVG component driven by control values). Each
+                   arrow gets its own full-size overlay <svg> — Alpine's x-for cloning
+                   doesn't reliably work on <template> nested inside an <svg> element
+                   due to SVG's foreign-content namespace rules, so the x-for wraps the
+                   <svg> itself instead of living inside it. -->
+              <template x-for="obj in (currentStep?.scene?.objects || []).filter(o => o.arrow)" :key="'arrow-' + obj.id">
+                <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <line :x1="arrowGeometry(obj).startX" :y1="arrowGeometry(obj).y" :x2="arrowGeometry(obj).endX" :y2="arrowGeometry(obj).y"
+                        :stroke="characterForObject(obj).kit_color" :stroke-width="2 + (controlValues[obj.arrow.control_ref] || 0) / 30" stroke-linecap="round" />
+                  <polygon :points="`${arrowGeometry(obj).endX},${arrowGeometry(obj).y - 2.5} ${arrowGeometry(obj).endX + arrowGeometry(obj).dir * 3},${arrowGeometry(obj).y} ${arrowGeometry(obj).endX},${arrowGeometry(obj).y + 2.5}`" :fill="characterForObject(obj).kit_color" />
+                </svg>
+              </template>
+
+              <!-- Ball -->
+              <template x-for="obj in (currentStep?.scene?.objects || []).filter(o => o.kind === 'ball')" :key="obj.id">
+                <div class="ball-wrap" :style="`left:${getObjectPos(obj.id).x}%; top:${getObjectPos(obj.id).y}%;`">
+                  <svg width="26" height="26" viewBox="0 0 26 26">
+                    <circle cx="13" cy="13" r="12" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" />
+                    <polygon points="13,6 17,9 15.5,14 10.5,14 9,9" fill="#1e293b" />
+                  </svg>
+                </div>
+              </template>
+
+              <!-- Click zones (optionally rendering a prop sprite from the shared library) -->
+              <template x-for="obj in (currentStep?.scene?.objects || []).filter(o => o.kind === 'click_zone')" :key="obj.id">
+                <div
+                  class="target-zone"
+                  :class="{ 'has-prop': obj.prop }"
+                  :style="`left:${getObjectPos(obj.id).x}%; top:${getObjectPos(obj.id).y}%; width:${obj.size.width_pct}%; height:${obj.size.height_pct}%;`"
+                  @click="handleZoneClick(obj)"
+                >
+                  <template x-if="obj.prop === 'crate'">
+                    <svg class="prop-sprite" viewBox="0 0 100 100" preserveAspectRatio="xMidYMax meet">
+                      <polygon points="10,90 10,32 30,18 90,18 90,76 70,90" fill="#8a5a30" />
+                      <polygon points="10,32 30,18 90,18 70,32" fill="#c98f52" />
+                      <rect x="10" y="32" width="60" height="58" fill="#a9713f" />
+                      <line x1="10" y1="52" x2="70" y2="52" stroke="#7a4c28" stroke-width="2" />
+                      <line x1="10" y1="72" x2="70" y2="72" stroke="#7a4c28" stroke-width="2" />
+                      <line x1="40" y1="32" x2="40" y2="90" stroke="#7a4c28" stroke-width="2" />
+                    </svg>
+                  </template>
+                  <template x-if="obj.prop === 'rocket'">
+                    <svg class="prop-sprite" viewBox="0 0 100 100" preserveAspectRatio="xMidYMax meet">
+                      <polygon points="35,90 35,30 50,8 65,30 65,90" fill="#f1f5f9" stroke="#1e293b" stroke-width="1.5" />
+                      <circle cx="50" cy="38" r="8" fill="#38bdf8" stroke="#1e293b" stroke-width="1.5" />
+                      <polygon points="35,60 20,88 35,80" fill="#ef4444" />
+                      <polygon points="65,60 80,88 65,80" fill="#ef4444" />
+                      <polygon points="42,90 50,99 58,90" fill="#f97316" />
+                    </svg>
+                  </template>
+                  <span class="zone-label" x-text="obj.label"></span>
+                </div>
+              </template>
+            </div>
+
+            <!-- Generic controls (sliders / buttons / steppers), rendered from JSON -->
+            <template x-if="currentStep?.scene?.controls && currentStep.scene.controls.length">
+              <div class="absolute bottom-2 left-2 right-2 bg-white/90 rounded-xl px-4 py-2.5 flex items-center gap-4 shadow-sm">
+                <template x-for="c in (currentStep?.scene?.controls || []).filter(c => c.type === 'slider')" :key="c.id">
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1">
+                      <span x-text="c.label"></span>
+                      <span x-text="controlValues[c.id] + ' N'"></span>
+                    </div>
+                    <input type="range" :min="c.min" :max="c.max" :step="c.step" class="force-slider"
+                           x-model.number="controlValues[c.id]" @input="onControlChange(c)" />
+                  </div>
+                </template>
+                <template x-for="c in (currentStep?.scene?.controls || []).filter(c => c.type === 'button')" :key="c.id">
+                  <button class="pastel-btn text-sm font-bold px-4 py-2 rounded-full" @click="onControlClick(c)" x-text="c.label"></button>
+                </template>
+              </div>
+            </template>
+          </div>
+        </template>
+
+        <!-- ===== slideshow ===== -->
+        <template x-if="currentStep?.content_type === 'slideshow'">
+          <div class="absolute inset-0">
+            <img
+              :src="resolveAsset(currentStep?.slides?.[slideIndex]?.image)"
+              alt="Slide"
+              class="absolute inset-0 w-full h-full object-cover select-none"
+              draggable="false"
+            />
+            <div class="absolute inset-x-0 bottom-0 bg-slate-900/70 text-white text-sm px-4 py-3">
+              <p x-text="currentStep?.slides?.[slideIndex]?.caption"></p>
+            </div>
+            <button x-show="slideIndex > 0" @click="prevSlide()" class="absolute left-2 top-1/2 -translate-y-1/2 pastel-btn w-8 h-8 rounded-full font-bold">‹</button>
+            <button x-show="slideIndex + 1 < (currentStep?.slides?.length || 0)" @click="nextSlide()" class="absolute right-2 top-1/2 -translate-y-1/2 pastel-btn w-8 h-8 rounded-full font-bold">›</button>
+            <div class="absolute top-2 right-2 status-pill rounded-full px-3 py-1 text-xs font-semibold">
+              <span x-text="(slideIndex + 1) + ' / ' + (currentStep?.slides?.length || 0)"></span>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== story ===== -->
+        <template x-if="currentStep?.content_type === 'story'">
+          <div class="absolute inset-0 flex items-center justify-center p-6" style="background: linear-gradient(160deg, #e0f4ff, #eef9f6);">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 max-w-md w-full">
+              <p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#00a8e8;" x-text="currentStep?.panels?.[storyIndex]?.speaker"></p>
+              <p class="text-slate-700 leading-snug" x-text="currentStep?.panels?.[storyIndex]?.text"></p>
+              <div class="flex items-center justify-between mt-4">
+                <span class="text-xs text-slate-400" x-text="(storyIndex + 1) + ' / ' + (currentStep?.panels?.length || 0)"></span>
+                <button x-show="storyIndex + 1 < (currentStep?.panels?.length || 0)" @click="nextPanel()" class="pastel-btn text-sm font-bold px-4 py-1.5 rounded-full">Continue →</button>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <div class="px-4 py-3 text-xs text-slate-400 border-t border-slate-100">
+        <span x-show="currentStep?.content_type === 'interactive_scene'">Adjust the controls and interact with the scene — zero network calls per adjustment.</span>
+        <span x-show="currentStep?.content_type === 'slideshow'">Use the arrows to move through the slides.</span>
+        <span x-show="currentStep?.content_type === 'story'">Follow the dialogue, then answer the question.</span>
+      </div>
+    </section>
+
+    <!-- ============ RIGHT PANE: SOCRATIC PANEL ============ -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+      <div class="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-slate-500">Check Your Understanding</h2>
+        <span class="text-xs text-slate-400 font-mono">
+          Attempts: <span x-text="attempts"></span>
+        </span>
+      </div>
+
+      <div class="p-5 flex flex-col gap-4 flex-1">
+        <!-- Standards + scenario -->
+        <div x-show="currentStep?.standards?.length || currentStep?.scenario_text">
+          <div class="flex gap-1.5 mb-2" x-show="currentStep?.standards?.length">
+            <template x-for="std in currentStep?.standards || []" :key="std">
+              <span class="standards-badge text-[10px] font-semibold px-2 py-0.5 rounded" x-text="std"></span>
+            </template>
+          </div>
+          <p x-show="currentStep?.scenario_text" class="scenario-box text-sm text-slate-700 rounded-lg px-3 py-2" x-text="currentStep?.scenario_text"></p>
+        </div>
+
+        <p class="text-lg font-medium leading-snug text-slate-800" x-text="currentStep?.evaluation?.question"></p>
+
+        <!-- multiple_choice -->
+        <template x-if="currentStep?.evaluation?.type === 'multiple_choice'">
+          <div class="flex flex-col gap-2.5">
+            <template x-for="opt in (currentStep?.evaluation?.options || [])" :key="opt.id">
+              <button
+                class="option-card text-left border border-slate-200 rounded-lg px-4 py-3 flex items-start gap-3"
+                :class="{
+                  'locked pointer-events-none': answered,
+                  'correct': answered && opt.is_correct,
+                  'incorrect': selectedOptionId === opt.id && !opt.is_correct
+                }"
+                @click="selectOption(opt)"
+              >
+                <span class="font-mono font-bold w-5" style="color:#1e3a5f;" x-text="opt.id"></span>
+                <span class="text-sm text-slate-700" x-text="opt.text"></span>
+              </button>
+            </template>
+          </div>
+        </template>
+
+        <!-- free_text -->
+        <template x-if="currentStep?.evaluation?.type === 'free_text'">
+          <div class="flex flex-col gap-2.5">
+            <div class="flex gap-2">
+              <input
+                type="text"
+                class="eval-input flex-1 rounded-lg px-3 py-2 text-sm"
+                :class="{ wrong: freeTextWrong }"
+                placeholder="Type your answer…"
+                x-model="freeTextAnswer"
+                :disabled="answered"
+                @keydown.enter="submitFreeText()"
+              />
+              <button class="pastel-btn text-sm font-bold px-4 py-2 rounded-full" :disabled="answered" @click="submitFreeText()">Submit</button>
+            </div>
+            <p x-show="freeTextWrong" class="text-xs text-red-500">Not quite — try again.</p>
+            <p x-show="answered" class="text-xs text-emerald-600 font-semibold">Correct!</p>
+          </div>
+        </template>
+
+        <!-- dropdown -->
+        <template x-if="currentStep?.evaluation?.type === 'dropdown'">
+          <div class="flex flex-col gap-2.5">
+            <div class="flex gap-2">
+              <select class="eval-input flex-1 rounded-lg px-3 py-2 text-sm" :class="{ wrong: dropdownWrong }" x-model="dropdownAnswer" :disabled="answered">
+                <option value="" disabled>Select an answer…</option>
+                <template x-for="choice in (currentStep?.evaluation?.choices || [])" :key="choice">
+                  <option :value="choice" x-text="choice"></option>
+                </template>
+              </select>
+              <button class="pastel-btn text-sm font-bold px-4 py-2 rounded-full" :disabled="answered || !dropdownAnswer" @click="submitDropdown()">Submit</button>
+            </div>
+            <p x-show="dropdownWrong" class="text-xs text-red-500">Not quite — try again.</p>
+            <p x-show="answered" class="text-xs text-emerald-600 font-semibold">Correct!</p>
+          </div>
+        </template>
+
+        <!-- Hint -->
+        <div>
+          <button
+            @click="showHint = !showHint"
+            class="text-xs font-medium underline underline-offset-2"
+            style="color:#00a8e8;">
+            <span x-text="showHint ? 'Hide hint' : 'Need a hint?'"></span>
+          </button>
+          <p x-show="showHint" x-cloak class="mt-2 text-sm text-slate-600 rounded-lg px-3 py-2 border border-slate-200" style="background:#e0f4ff;" x-text="currentStep?.evaluation?.hint"></p>
+        </div>
+
+        <div class="flex-1"></div>
+
+        <!-- Audio mock control + navigation -->
+        <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+          <button
+            @click="toggleListening()"
+            class="flex items-center gap-2 border rounded-full px-4 py-2 text-sm font-semibold transition-colors"
+            :class="listening
+              ? 'bg-red-50 border-red-300 text-red-600 listening-pulse'
+              : 'pastel-btn'"
+          >
+            <span x-text="listening ? '🎙️' : '🎤'"></span>
+            <span x-text="listening ? 'Listening…' : 'Speak Answer'"></span>
+          </button>
+
+          <button
+            x-show="answered"
+            @click="nextStep()"
+            class="pastel-btn text-sm font-bold px-4 py-2 rounded-full">
+            <span x-text="currentStepIndex + 1 < (lesson?.total_steps || 0) ? 'Next Step →' : 'Finish Lesson'"></span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== CORRECT ANSWER MODAL ===================== -->
+  <div
+    x-show="showCorrectModal"
+    x-cloak
+    class="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 p-4"
+  >
+    <div class="modal-pop bg-white border border-emerald-200 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
+      <div class="text-5xl mb-3">✅</div>
+      <h3 class="text-2xl font-bold text-emerald-600 mb-1">Correct!</h3>
+      <p class="text-slate-500 text-sm mb-5">+50 XP awarded.</p>
+      <button
+        @click="showCorrectModal = false"
+        class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-2 rounded-full transition-colors">
+        Continue
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================== ZONE ALERT TOAST ===================== -->
+  <div
+    x-show="zoneToast"
+    x-transition
+    x-cloak
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-full shadow-lg text-sm z-50"
+    x-text="zoneToast"
+  ></div>
+
+</body>
+</html>

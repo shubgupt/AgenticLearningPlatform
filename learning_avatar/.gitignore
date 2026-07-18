@@ -3,3 +3,7 @@ __pycache__/
 .venv/
 .env
 sessions.db
+
+# canvas_lab (self-contained sibling project — its own SQLite cache)
+canvas_lab/lessons.db
+canvas_lab/.pytest_cache/
